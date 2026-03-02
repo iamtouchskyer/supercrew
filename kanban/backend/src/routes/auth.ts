@@ -12,16 +12,14 @@ const BACKEND_URL = env.BACKEND_URL
 export function createAuthRouter(registry: UserRegistry) {
   const app = new Hono()
 
-  // 跳转 GitHub OAuth
-  // 先走 github.com/login，强制弹出账号选择/登录页，再进 OAuth 授权
+  // 跳转 GitHub OAuth（标准流程，GitHub 自动处理登录）
   app.get('/github', (c) => {
     const params = new URLSearchParams({
       client_id: GITHUB_CLIENT_ID,
       scope: 'read:user repo',
       redirect_uri: `${BACKEND_URL}/auth/callback`,
     })
-    const oauthPath = `/login/oauth/authorize?${params}`
-    return c.redirect(`https://github.com/login?return_to=${encodeURIComponent(oauthPath)}`)
+    return c.redirect(`https://github.com/login/oauth/authorize?${params}`)
   })
 
   // GitHub 回调
