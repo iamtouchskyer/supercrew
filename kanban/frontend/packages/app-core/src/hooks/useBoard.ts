@@ -16,19 +16,12 @@ export function useBoard() {
     staleTime: 30_000,
   })
 
-  // Subscribe to server-sent file-change events → invalidate board cache
+  // Poll for data refresh every 30s
   useEffect(() => {
-    const es = new EventSource('/api/events')
-
-    es.addEventListener('change', () => {
+    const interval = setInterval(() => {
       queryClient.invalidateQueries({ queryKey: BOARD_KEY })
-    })
-
-    es.onerror = () => {
-      // Silently reconnect — EventSource retries automatically
-    }
-
-    return () => es.close()
+    }, 30_000)
+    return () => clearInterval(interval)
   }, [queryClient])
 
   const board = data ?? EMPTY_BOARD
