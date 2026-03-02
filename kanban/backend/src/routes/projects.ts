@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { verify } from 'hono/jwt'
-import type { UserRegistry } from '../registry/types'
+import type { UserRegistry } from '../registry/types.js'
 
 const JWT_SECRET = process.env.JWT_SECRET!
 

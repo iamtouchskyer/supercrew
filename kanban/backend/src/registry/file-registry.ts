@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { dirname } from 'path'
-import type { User, Project, UserRegistry } from './types'
+import type { User, Project, UserRegistry } from './types.js'
 
 export class FileRegistry implements UserRegistry {
   private filePath: string

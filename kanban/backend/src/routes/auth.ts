@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { sign, verify } from 'hono/jwt'
-import type { UserRegistry } from '../registry/types'
+import type { UserRegistry } from '../registry/types.js'
 
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID!
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET!
