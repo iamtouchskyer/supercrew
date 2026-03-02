@@ -1,0 +1,104 @@
+{
+  "nav": {
+    "board": "Board",
+    "people": "People",
+    "knowledge": "Knowledge",
+    "decisions": "Decisions"
+  },
+  "sidebar": {
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "logout": "Sign out",
+    "disconnect": "Disconnect repo",
+    "disconnectConfirm": "Disconnect from this repo? You can reconnect later."
+  },
+  "board": {
+    "loading": "Loading…",
+    "activeSprint": "Active Sprint",
+    "addTo": "Add to {{name}}",
+    "columns": {
+      "backlog": "Backlog",
+      "todo": "To Do",
+      "inProgress": "In Progress",
+      "inReview": "In Review",
+      "done": "Done"
+    }
+  },
+  "login": {
+    "subtitle": "Multi-person · Multi-Agent · Git-native Kanban",
+    "githubLogin": "Sign in with GitHub",
+    "errors": {
+      "no_code": "GitHub didn't return an auth code, please try again",
+      "token_failed": "GitHub authorization failed, please try again",
+      "access_denied": "You cancelled the authorization",
+      "unknown": "An error occurred during login, please try again"
+    }
+  },
+  "callback": {
+    "signingIn": "Signing in…"
+  },
+  "welcome": {
+    "step1": {
+      "title": "Welcome to The Crew",
+      "feature1": "🗂  Git-native task management, data stored in .team/",
+      "feature2": "🤖  Multi-Agent collaboration, automatic task handoff",
+      "feature3": "👥  Multi-person realtime board, GitHub permission-based"
+    },
+    "step2": {
+      "title": "Select GitHub Repo",
+      "description": "Choose the repo you want to manage with Crew",
+      "selectPlaceholder": "Select a repo…",
+      "searchPlaceholder": "Search repos…",
+      "loading": "Loading…",
+      "noResults": "No repos found",
+      "private": "private"
+    },
+    "step3": {
+      "initializing": "Initializing .team/ directory…",
+      "success": "Initialized successfully, entering board…",
+      "retry": "Retry",
+      "noRepo": "Please go back and select a repo first",
+      "initFailed": "Initialization failed",
+      "unknownError": "Unknown error"
+    },
+    "nav": {
+      "back": "Back",
+      "next": "Next"
+    }
+  },
+  "people": {
+    "title": "Team",
+    "empty": "No people found. Add .md files to .team/people/",
+    "workingOn": "Working on",
+    "today": "Today"
+  },
+  "knowledge": {
+    "title": "Knowledge Base",
+    "loading": "Loading…",
+    "empty": "No entries yet. Add .md files to .team/knowledge/"
+  },
+  "decisions": {
+    "title": "Architecture Decisions",
+    "loading": "Loading…",
+    "empty": "No ADRs yet. Add .md files to .team/decisions/"
+  },
+  "task": {
+    "notFound": "Task {{id}} not found",
+    "props": {
+      "status": "Status",
+      "priority": "Priority",
+      "assignee": "Assignee",
+      "sprint": "Sprint",
+      "tags": "Tags",
+      "pr": "PR",
+      "blockedBy": "Blocked by",
+      "blocks": "Blocks"
+    },
+    "sprintLabel": "Sprint {{n}}",
+    "description": "Description",
+    "clickToEdit": "Click to edit",
+    "addDescription": "Click to add description…",
+    "save": "Save",
+    "cancel": "Cancel"
+  }
+}
