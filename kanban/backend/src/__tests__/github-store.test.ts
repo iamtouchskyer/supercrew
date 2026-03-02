@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const mockFetch = vi.fn()
-global.fetch = mockFetch
+global.fetch = mockFetch as any
 
 import { listTasksGH, readTaskGH } from '../store/github-store.js'
 
