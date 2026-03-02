@@ -1,57 +1,46 @@
 import { Hono } from 'hono'
-import { listSprints, activeSprint, writeSprint } from '../store/index.js'
+import { listSprintsGH, writeSprintGH } from '../store/github-store.js'
+import { getGitHubContext } from '../lib/get-github-context.js'
+import type { UserRegistry } from '../registry/types.js'
 import type { Sprint } from '../types/index.js'
 
-const app = new Hono()
+export function createSprintsRouter(registry: UserRegistry) {
+  const app = new Hono()
 
-// GET /sprints
-app.get('/', (c) => {
-  return c.json(listSprints())
-})
+  app.get('/', async (c) => {
+    try {
+      const ctx = await getGitHubContext(c.req.header('Authorization'), registry)
+      return c.json(await listSprintsGH(ctx.accessToken, ctx.owner, ctx.repo))
+    } catch (e: any) {
+      return c.json({ error: e.message }, e.message === 'Unauthorized' ? 401 : 400)
+    }
+  })
 
-// GET /sprints/active
-app.get('/active', (c) => {
-  const sprint = activeSprint()
-  if (!sprint) return c.json({ error: 'No active sprint' }, 404)
-  return c.json(sprint)
-})
+  app.post('/', async (c) => {
+    try {
+      const ctx = await getGitHubContext(c.req.header('Authorization'), registry)
+      const body = await c.req.json<Sprint>()
+      await writeSprintGH(ctx.accessToken, ctx.owner, ctx.repo, body)
+      return c.json(body, 201)
+    } catch (e: any) {
+      return c.json({ error: e.message }, e.message === 'Unauthorized' ? 401 : 400)
+    }
+  })
 
-// GET /sprints/:id
-app.get('/:id', (c) => {
-  const id = parseInt(c.req.param('id'), 10)
-  const sprint = listSprints().find(s => s.id === id)
-  if (!sprint) return c.json({ error: 'Not found' }, 404)
-  return c.json(sprint)
-})
+  app.patch('/:id', async (c) => {
+    try {
+      const ctx = await getGitHubContext(c.req.header('Authorization'), registry)
+      const body = await c.req.json<Partial<Sprint>>()
+      const sprints = await listSprintsGH(ctx.accessToken, ctx.owner, ctx.repo)
+      const sprint = sprints.find(s => s.id === parseInt(c.req.param('id')))
+      if (!sprint) return c.json({ error: 'Not found' }, 404)
+      const updated = { ...sprint, ...body }
+      await writeSprintGH(ctx.accessToken, ctx.owner, ctx.repo, updated)
+      return c.json(updated)
+    } catch (e: any) {
+      return c.json({ error: e.message }, e.message === 'Unauthorized' ? 401 : 400)
+    }
+  })
 
-// POST /sprints — create sprint
-app.post('/', async (c) => {
-  const body = await c.req.json<Partial<Sprint>>()
-  if (!body.id || !body.name || !body.start || !body.end) {
-    return c.json({ error: 'id, name, start, end are required' }, 400)
-  }
-  const sprint: Sprint = {
-    id: body.id,
-    name: body.name,
-    start: body.start,
-    end: body.end,
-    goal: body.goal ?? '',
-    status: body.status ?? 'planned',
-  }
-  writeSprint(sprint)
-  return c.json(sprint, 201)
-})
-
-// PATCH /sprints/:id — update sprint
-app.patch('/:id', async (c) => {
-  const id = parseInt(c.req.param('id'), 10)
-  const existing = listSprints().find(s => s.id === id)
-  if (!existing) return c.json({ error: 'Not found' }, 404)
-
-  const body = await c.req.json<Partial<Sprint>>()
-  const updated: Sprint = { ...existing, ...body, id }
-  writeSprint(updated)
-  return c.json(updated)
-})
-
-export default app
+  return app
+}

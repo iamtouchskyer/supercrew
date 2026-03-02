@@ -1,126 +1,67 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { streamSSE } from 'hono/streaming'
-import { watch } from 'chokidar'
-import { join } from 'path'
-import { FileRegistry } from './registry/file-registry'
-import { createAuthRouter } from './routes/auth'
-import { createProjectsRouter } from './routes/projects'
-import tasksRouter from './routes/tasks.js'
-import sprintsRouter from './routes/sprints.js'
-import peopleRouter from './routes/people.js'
-import knowledgeRouter from './routes/knowledge.js'
-import decisionsRouter from './routes/decisions.js'
-import { listTasks, listSprints, listPeople } from './store/index.js'
+import { KVRegistry } from './registry/kv-registry.js'
+import { FileRegistry } from './registry/file-registry.js'
+import { createAuthRouter } from './routes/auth.js'
+import { createProjectsRouter } from './routes/projects.js'
+import { createTasksRouter } from './routes/tasks.js'
+import { createSprintsRouter } from './routes/sprints.js'
+import { createPeopleRouter } from './routes/people.js'
+import { createKnowledgeRouter } from './routes/knowledge.js'
+import { createDecisionsRouter } from './routes/decisions.js'
+import { getGitHubContext } from './lib/get-github-context.js'
+import { listTasksGH, listSprintsGH, listPeopleGH } from './store/github-store.js'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
 
-const TEAM_DIR = process.env.TEAM_DIR ?? join(process.cwd(), '../..', '.team')
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+// Use KV registry in production (Vercel), file registry locally
+const registry = process.env.KV_REST_API_URL
+  ? new KVRegistry()
+  : new FileRegistry(join(__dirname, '../../data/users.json'))
+
+const FRONTEND_URL = process.env.FRONTEND_URL ?? 'http://localhost:5173'
 const PORT = parseInt(process.env.PORT ?? '3001', 10)
 
-// ─── App ──────────────────────────────────────────────────────────────────────
-
-const app = new Hono()
+export const app = new Hono()
 
 app.use('*', cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'],
+  origin: [FRONTEND_URL, 'http://localhost:5173', 'http://localhost:5174'],
   allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
 }))
 
-// ─── Routes ───────────────────────────────────────────────────────────────────
-
-const registry = new FileRegistry(join(import.meta.dir, '../../data/users.json'))
 app.route('/auth', createAuthRouter(registry))
 app.route('/api/projects', createProjectsRouter(registry))
+app.route('/api/tasks', createTasksRouter(registry))
+app.route('/api/sprints', createSprintsRouter(registry))
+app.route('/api/people', createPeopleRouter(registry))
+app.route('/api/knowledge', createKnowledgeRouter(registry))
+app.route('/api/decisions', createDecisionsRouter(registry))
 
-app.route('/api/tasks', tasksRouter)
-app.route('/api/sprints', sprintsRouter)
-app.route('/api/people', peopleRouter)
-app.route('/api/knowledge', knowledgeRouter)
-app.route('/api/decisions', decisionsRouter)
-
-// GET /api/board — all data in one shot (for initial load)
-app.get('/api/board', (c) => {
-  return c.json({
-    tasks: listTasks(),
-    sprints: listSprints(),
-    people: listPeople(),
-  })
-})
-
-// ─── SSE: real-time file-change events ────────────────────────────────────────
-
-// Keep a set of active SSE controllers
-const sseClients = new Set<(event: string, data: string) => void>()
-
-function broadcast(event: string, data: object) {
-  const payload = JSON.stringify(data)
-  for (const send of sseClients) {
-    try { send(event, payload) } catch { /* client disconnected */ }
-  }
-}
-
-// Watch .team/ directory for changes
-const watcher = watch(TEAM_DIR, {
-  ignoreInitial: true,
-  persistent: true,
-  awaitWriteFinish: { stabilityThreshold: 100, pollInterval: 50 },
-})
-
-function pathToResource(filePath: string): string {
-  if (filePath.includes('/tasks/')) return 'tasks'
-  if (filePath.includes('/sprints/')) return 'sprints'
-  if (filePath.includes('/people/')) return 'people'
-  if (filePath.includes('/knowledge/')) return 'knowledge'
-  if (filePath.includes('/decisions/')) return 'decisions'
-  return 'unknown'
-}
-
-watcher.on('all', (event, filePath) => {
-  const resource = pathToResource(filePath)
-  if (resource !== 'unknown') {
-    broadcast('change', { resource, event, path: filePath })
+// Board: aggregate endpoint
+app.get('/api/board', async (c) => {
+  try {
+    const ctx = await getGitHubContext(c.req.header('Authorization'), registry)
+    const [tasks, sprints, people] = await Promise.all([
+      listTasksGH(ctx.accessToken, ctx.owner, ctx.repo),
+      listSprintsGH(ctx.accessToken, ctx.owner, ctx.repo),
+      listPeopleGH(ctx.accessToken, ctx.owner, ctx.repo),
+    ])
+    return c.json({ tasks, sprints, people })
+  } catch (e: any) {
+    return c.json({ error: e.message }, e.message === 'Unauthorized' ? 401 : 400)
   }
 })
 
-app.get('/api/events', (c) => {
-  return streamSSE(c, async (stream) => {
-    const send = (event: string, data: string) => {
-      stream.writeSSE({ event, data }).catch(() => {})
-    }
+app.get('/health', (c) => c.json({ ok: true }))
 
-    sseClients.add(send)
-    await stream.writeSSE({ event: 'connected', data: '{}' })
-
-    // Keep alive ping every 30s
-    const ping = setInterval(() => {
-      stream.writeSSE({ event: 'ping', data: '{}' }).catch(() => clearInterval(ping))
-    }, 30_000)
-
-    // Cleanup on disconnect
-    stream.onAbort(() => {
-      clearInterval(ping)
-      sseClients.delete(send)
-    })
-
-    // Hold open
-    await new Promise<void>((resolve) => {
-      stream.onAbort(resolve)
-    })
-  })
-})
-
-// ─── Health check ─────────────────────────────────────────────────────────────
-
-app.get('/health', (c) => c.json({ ok: true, teamDir: TEAM_DIR }))
-
-// ─── Start ────────────────────────────────────────────────────────────────────
-
-console.log(`Kanban backend running on http://localhost:${PORT}`)
-console.log(`Watching .team/ at: ${TEAM_DIR}`)
-
-export default {
-  port: PORT,
-  fetch: app.fetch,
-  // GitHub API calls can take >10s; raise idle timeout to avoid premature kill
-  idleTimeout: 60,
+// Local dev entry point (Bun)
+if (typeof Bun !== 'undefined') {
+  console.log(`Backend running on http://localhost:${PORT}`)
+  // @ts-ignore
+  Bun.serve({ port: PORT, fetch: app.fetch })
 }
+
+export default app
