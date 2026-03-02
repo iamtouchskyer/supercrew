@@ -6,6 +6,7 @@
     "dev": "bun run --watch src/index.ts",
     "start": "bun run src/index.ts",
     "typecheck": "tsc --noEmit",
+    "typecheck:node": "tsc -p tsconfig.node.json",
     "test": "bun test",
     "test:vitest": "vitest run"
   },
