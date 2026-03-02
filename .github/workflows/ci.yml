@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install backend deps
+        run: cd kanban/backend && bun install
+
+      - name: Install frontend deps
+        run: cd kanban/frontend && pnpm install
+
+      - name: Typecheck backend (Bun)
+        run: cd kanban/backend && npm run typecheck
+
+      - name: Typecheck backend (Node)
+        run: cd kanban/backend && npm run typecheck:node
+
+      - name: Typecheck frontend
+        run: cd kanban/frontend/packages/local-web && pnpm run check
+
+      - name: Test backend
+        run: cd kanban/backend && npm run test:vitest
+
+      - name: Test app-core
+        run: cd kanban/frontend/packages/app-core && pnpm run test
+
+      - name: Bundle API (verify esbuild)
+        run: cd kanban && npm run build:api
