@@ -1,35 +1,20 @@
-# Development Workflow
+# SuperCrew — Development Workflow
 
-<!-- BEGIN:SUPERPOWERS_ONLY -->
-## Superpowers Plugin (Required)
+## Project Structure
 
-This project requires the [superpowers](https://github.com/obra/superpowers) plugin.
-
-If skills like `brainstorming`, `writing-plans`, `systematic-debugging` are not available,
-**stop and instruct the user to install superpowers first:**
-
-```bash
-# Claude Code
-/plugin marketplace add obra/superpowers-marketplace
-/plugin install superpowers@superpowers-marketplace
-
-# Cursor
-/plugin-add superpowers
-```
-<!-- END:SUPERPOWERS_ONLY -->
+- `kanban/` — The Crew kanban app (Node.js + Bun backend, React + Vite frontend)
+- `plugins/` — Superpowers skills, hooks, commands, agents
 
 ## Workflow Rules
 
-- All feature development MUST follow a structured process: requirements gathering → design → implementation with tests → code review
-<!-- BEGIN:SUPERPOWERS_ONLY -->
-- Specifically: brainstorming → writing-plans → subagent-driven-development
-<!-- END:SUPERPOWERS_ONLY -->
-- All bugfixes MUST follow systematic root cause investigation before proposing fixes
-<!-- BEGIN:SUPERPOWERS_ONLY -->
-- Specifically: systematic-debugging (4-phase root cause investigation)
-- Before claiming any work is complete, MUST run verification-before-completion
+- All feature development MUST follow: brainstorming → writing-plans → subagent-driven-development
+- All bugfixes MUST follow systematic root cause investigation (systematic-debugging skill)
+- Before claiming work is complete, run verification-before-completion
 - Worktrees go in `.worktrees/` (already gitignored)
-<!-- END:SUPERPOWERS_ONLY -->
+
+## Skills
+
+Skills live in `plugins/skills/`. They are loaded automatically by Claude Code from this directory — no plugin installation needed.
 
 ## Project Conventions
 
