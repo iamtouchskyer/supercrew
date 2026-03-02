@@ -9,7 +9,8 @@
     "typecheck:node": "tsc -p tsconfig.node.json",
     "test": "bun test",
     "test:vitest": "vitest run",
-    "verify": "npm run typecheck:node 2>&1 | grep -v 'Bun' | grep -v 'bun:test' | grep 'error TS' && exit 1 || npm run test:vitest"
+    "typecheck:api": "tsc --noEmit --esModuleInterop --moduleResolution node --target ESNext --module ESNext ../api/index.ts",
+    "verify": "npm run typecheck:api && (npm run typecheck:node 2>&1 | grep -v 'Bun' | grep -v 'bun:test' | grep 'error TS' && exit 1 || npm run test:vitest)"
   },
   "dependencies": {
     "@types/node": "^25.3.3",
