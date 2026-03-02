@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd frontend && pnpm install && pnpm --filter @vibe/local-web build",
+  "buildCommand": "cd frontend && npx pnpm@10 install && npx pnpm@10 --filter @vibe/local-web build",
   "outputDirectory": "frontend/packages/local-web/dist",
   "installCommand": "cd backend && npm install",
   "rewrites": [
