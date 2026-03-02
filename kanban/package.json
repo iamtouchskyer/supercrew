@@ -7,6 +7,10 @@
     "dev:backend": "cd backend && bun run src/index.ts",
     "dev:frontend": "cd frontend/packages/local-web && pnpm dev"
   },
+  "dependencies": {
+    "@types/node": "^25.3.3",
+    "hono": "^4.12.3"
+  },
   "devDependencies": {
     "concurrently": "^9.0.0"
   }

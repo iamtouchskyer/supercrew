@@ -25,7 +25,7 @@
     }
   },
   "login": {
-    "subtitle": "Multi-person · Multi-Agent · Git-native Kanban",
+    "subtitle": "A crew isn't just people anymore.",
     "githubLogin": "Sign in with GitHub",
     "errors": {
       "no_code": "GitHub didn't return an auth code, please try again",
@@ -40,9 +40,9 @@
   "welcome": {
     "step1": {
       "title": "Welcome to Super Crew",
-      "feature1": "🗂  Git-native task management, data stored in .team/",
-      "feature2": "🤖  Multi-Agent collaboration, automatic task handoff",
-      "feature3": "👥  Multi-person realtime board, GitHub permission-based"
+      "feature1": "Your repo is your workspace — no extra SaaS, no data export",
+      "feature2": "AI agents that actually ship — they pick up tasks, do the work, deliver",
+      "feature3": "One board for the whole crew — humans and agents, real-time, one view"
     },
     "step2": {
       "title": "Select GitHub Repo",

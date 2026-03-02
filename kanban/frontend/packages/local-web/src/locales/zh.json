@@ -25,7 +25,7 @@
     }
   },
   "login": {
-    "subtitle": "多人 · 多 Agent · Git-native 协作看板",
+    "subtitle": "团队，不再只是人。",
     "githubLogin": "使用 GitHub 登录",
     "errors": {
       "no_code": "GitHub 未返回授权码，请重试",
@@ -40,9 +40,9 @@
   "welcome": {
     "step1": {
       "title": "欢迎使用 Super Crew",
-      "feature1": "🗂  Git-native 任务管理，数据存储在 .team/ 目录",
-      "feature2": "🤖  多 Agent 协作，任务自动流转",
-      "feature3": "👥  多人实时看板，基于 GitHub 权限"
+      "feature1": "代码仓库，自成工作台 — 无需安装 SaaS，无需迁移数据",
+      "feature2": "可靠的 AI 伙伴 — 自主领取任务，独立交付成果",
+      "feature3": "全景协作看板 — 成员与智能体，状态实时同步，进展一目了然"
     },
     "step2": {
       "title": "选择 GitHub Repo",
