@@ -39,7 +39,7 @@ function RootLayout() {
   // Route guard: redirect to /login if not authenticated on protected routes
   useEffect(() => {
     if (!PUBLIC_PATHS.includes(pathname) && !isAuthenticated()) {
-      navigate({ to: '/login', search: { error: undefined } })
+      navigate({ to: '/login', search: { error: undefined, token: undefined } })
     }
   }, [pathname])
 
@@ -64,7 +64,7 @@ function RootLayout() {
   function handleLogout() {
     clearToken()
     queryClient.clear()
-    void navigate({ to: '/login', search: { error: undefined } })
+    void navigate({ to: '/login', search: { error: undefined, token: undefined } })
   }
 
   async function handleDisconnect() {
