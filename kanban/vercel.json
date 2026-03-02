@@ -3,9 +3,9 @@
   "outputDirectory": "frontend/packages/local-web/dist",
   "installCommand": "cd backend && npm install",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/backend/api/index" },
-    { "source": "/auth/:path*", "destination": "/backend/api/index" },
-    { "source": "/health", "destination": "/backend/api/index" },
+    { "source": "/api/:path*", "destination": "/api" },
+    { "source": "/auth/:path*", "destination": "/api" },
+    { "source": "/health", "destination": "/api" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
