@@ -1,7 +1,7 @@
 {
-  "buildCommand": "cd frontend && npx pnpm@10 install && npx pnpm@10 --filter @vibe/local-web build",
+  "buildCommand": "npm run build:api && cd frontend && npx pnpm@10 install && npx pnpm@10 --filter @vibe/local-web build",
   "outputDirectory": "frontend/packages/local-web/dist",
-  "installCommand": "npm install && cd backend && npm install",
+  "installCommand": "npm install --include=dev && cd backend && npm install",
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api" },
     { "source": "/auth/:path*", "destination": "/api" },

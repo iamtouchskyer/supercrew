@@ -15,18 +15,26 @@ A lightweight team kanban board with GitHub integration. Features:
 
 **Stack:** Node.js + Bun backend, React + Vite + TanStack Router frontend
 
-**Run locally:**
+**Quick start:**
 
 ```bash
-cd kanban
-npm install
-cd backend && bun install && cd ..
-cd frontend && pnpm install && cd ..
-npm run dev
+make install   # install all deps
+make dev       # run backend + frontend
 ```
 
 - Frontend: http://localhost:5173
 - Backend: http://localhost:3001
+
+**Other commands:**
+
+```bash
+make build     # build frontend for production
+make test      # run all tests
+make typecheck # TypeScript type checks
+make lint      # lint frontend code
+make verify    # full pre-deploy verification
+make clean     # remove build artifacts & node_modules
+```
 
 ### `plugins/` — Superpowers Skills
 
