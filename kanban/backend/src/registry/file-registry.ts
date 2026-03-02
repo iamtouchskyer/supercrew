@@ -13,7 +13,12 @@ export class FileRegistry implements UserRegistry {
     if (!existsSync(filePath)) {
       writeFileSync(filePath, JSON.stringify({ users: [] }, null, 2))
     }
-    this.data = JSON.parse(readFileSync(filePath, 'utf-8'))
+    try {
+      this.data = JSON.parse(readFileSync(filePath, 'utf-8'))
+    } catch {
+      this.data = { users: [] }
+      this.save()
+    }
   }
 
   private save() {
