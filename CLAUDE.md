@@ -2,7 +2,7 @@
 
 ## Project Structure
 
-- `kanban/` — The Crew kanban app (Node.js + Bun backend, React + Vite frontend)
+- `kanban/` — Super Crew kanban app (Bun local / Vercel production, React + Vite frontend). See `kanban/CLAUDE.md` for detailed agent instructions.
 - `plugins/` — Superpowers skills, hooks, commands, agents
 
 ## Workflow Rules
