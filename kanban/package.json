@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && bun run src/index.ts",
-    "dev:frontend": "cd frontend/packages/local-web && pnpm dev"
+    "dev:frontend": "cd frontend/packages/local-web && pnpm dev",
+    "verify": "cd backend && npm run verify",
+    "test": "cd backend && npm run test:vitest",
+    "typecheck": "cd backend && npm run typecheck:node"
   },
   "dependencies": {
     "@types/node": "^25.3.3",
