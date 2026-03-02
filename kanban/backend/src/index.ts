@@ -56,13 +56,7 @@ app.get('/api/board', async (c) => {
   }
 })
 
-app.get('/health', (c) => c.json({
-  ok: true,
-  url: c.req.url,
-  path: c.req.path,
-  query: c.req.query(),
-  backend_url: env.BACKEND_URL,
-}))
+app.get('/health', (c) => c.json({ ok: true }))
 
 // Bun auto-serves when it sees a default export with { port, fetch }
 declare const Bun: any

@@ -1,18 +1,32 @@
-import { createFileRoute, useSearch } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
 import { LightningIcon } from '@phosphor-icons/react'
 import { useTranslation } from 'react-i18next'
+import { useEffect } from 'react'
+import { setToken } from '@vibe/app-core'
 import DotGrid from '@web/components/DotGrid'
 import BlurText from '@web/components/BlurText'
 import LangToggle from '@web/components/LangToggle'
 
 export const Route = createFileRoute('/login')({
-  validateSearch: (s: Record<string, unknown>) => ({ error: s.error as string | undefined }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    error: s.error as string | undefined,
+    token: s.token as string | undefined,
+  }),
   component: LoginPage,
 })
 
 function LoginPage() {
-  const { error } = useSearch({ from: '/login' })
+  const { error, token } = useSearch({ from: '/login' })
+  const navigate = useNavigate()
   const { t } = useTranslation()
+
+  // Handle OAuth callback token
+  useEffect(() => {
+    if (token) {
+      setToken(token)
+      navigate({ to: '/' })
+    }
+  }, [token])
 
   const errorMessage = error
     ? t(`login.errors.${error}`, t('login.errors.unknown'))

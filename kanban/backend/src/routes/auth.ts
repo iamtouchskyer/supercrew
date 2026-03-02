@@ -68,7 +68,7 @@ export function createAuthRouter(registry: UserRegistry) {
       'HS256'
     )
 
-    return c.redirect(`${FRONTEND_URL}/auth/callback?token=${token}`)
+    return c.redirect(`${FRONTEND_URL}/login?token=${token}`)
   })
 
   // 获取当前用户信息
