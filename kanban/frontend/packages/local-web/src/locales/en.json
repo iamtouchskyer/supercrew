@@ -39,14 +39,14 @@
   },
   "welcome": {
     "step1": {
-      "title": "Welcome to The Crew",
+      "title": "Welcome to Super Crew",
       "feature1": "🗂  Git-native task management, data stored in .team/",
       "feature2": "🤖  Multi-Agent collaboration, automatic task handoff",
       "feature3": "👥  Multi-person realtime board, GitHub permission-based"
     },
     "step2": {
       "title": "Select GitHub Repo",
-      "description": "Choose the repo you want to manage with Crew",
+      "description": "Choose the repo you want to manage with Super Crew",
       "selectPlaceholder": "Select a repo…",
       "searchPlaceholder": "Search repos…",
       "loading": "Loading…",

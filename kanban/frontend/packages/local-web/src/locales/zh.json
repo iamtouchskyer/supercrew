@@ -39,14 +39,14 @@
   },
   "welcome": {
     "step1": {
-      "title": "欢迎使用 The Crew",
+      "title": "欢迎使用 Super Crew",
       "feature1": "🗂  Git-native 任务管理，数据存储在 .team/ 目录",
       "feature2": "🤖  多 Agent 协作，任务自动流转",
       "feature3": "👥  多人实时看板，基于 GitHub 权限"
     },
     "step2": {
       "title": "选择 GitHub Repo",
-      "description": "选择你想通过 Crew 管理的项目仓库",
+      "description": "选择你想通过 Super Crew 管理的项目仓库",
       "selectPlaceholder": "选择 Repo…",
       "searchPlaceholder": "搜索 repo…",
       "loading": "加载中…",

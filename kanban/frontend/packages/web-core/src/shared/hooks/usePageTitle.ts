@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const BASE_TITLE = 'The Crew';
+const BASE_TITLE = 'Super Crew';
 
 /**
  * Sets the document title based on the given parts.

@@ -77,7 +77,7 @@ function LoginPage() {
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 28, fontWeight: 700, color: '#fff', marginBottom: 4 }}>
               <BlurText
-                text="The Crew"
+                text="Super Crew"
                 delay={120}
                 direction="top"
                 stepDuration={0.3}

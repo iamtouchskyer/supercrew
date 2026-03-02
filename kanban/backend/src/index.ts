@@ -58,6 +58,7 @@ app.get('/api/board', async (c) => {
 app.get('/health', (c) => c.json({ ok: true }))
 
 // Local dev entry point (Bun)
+declare const Bun: any
 if (typeof Bun !== 'undefined') {
   console.log(`Backend running on http://localhost:${PORT}`)
   // @ts-ignore
