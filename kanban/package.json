@@ -2,6 +2,7 @@
   "name": "@crew/crew",
   "private": true,
   "version": "0.1.0",
+  "packageManager": "pnpm@10.13.1",
   "scripts": {
     "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && bun run src/index.ts",
