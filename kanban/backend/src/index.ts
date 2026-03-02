@@ -16,8 +16,8 @@ import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-// Use KV registry in production (Vercel), file registry locally
-const registry = process.env.KV_REST_API_URL
+// Use KV registry on Vercel, file registry locally
+const registry = process.env.VERCEL
   ? new KVRegistry()
   : new FileRegistry(join(__dirname, '../../data/users.json'))
 
