@@ -7,14 +7,15 @@
     "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && bun run src/index.ts",
     "dev:frontend": "cd frontend/packages/local-web && pnpm dev",
-    "build:api": "esbuild backend/api-entry.ts --bundle --platform=node --format=esm --outfile=api/index.mjs --banner:js=\"import{createRequire}from'module';const require=createRequire(import.meta.url);\"",
     "verify": "cd backend && npm run verify",
     "test": "cd backend && npm run test:vitest",
     "typecheck": "cd backend && npm run typecheck:node"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@types/node": "^25.3.3",
+    "hono": "^4.12.3"
+  },
   "devDependencies": {
-    "concurrently": "^9.0.0",
-    "esbuild": "^0.27.3"
+    "concurrently": "^9.0.0"
   }
 }
