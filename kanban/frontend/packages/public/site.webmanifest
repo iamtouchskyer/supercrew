@@ -1,15 +1,17 @@
 {
   "name": "Super Crew",
   "short_name": "SC",
+  "start_url": "/",
+  "scope": "/",
   "icons": [
     {
-      "src": "/favicon-vk-light.svg",
+      "src": "/favicon-sc-light.svg",
       "sizes": "any",
       "purpose": "any",
       "type": "image/svg+xml"
     },
     {
-      "src": "/favicon-vk-light-maskable.svg",
+      "src": "/favicon-sc-light-maskable.svg",
       "sizes": "any",
       "purpose": "maskable",
       "type": "image/svg+xml"

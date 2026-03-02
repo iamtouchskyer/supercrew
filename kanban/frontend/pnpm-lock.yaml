@@ -44,7 +44,7 @@ importers:
         specifier: ^5.9.2
         version: 5.9.3
       vitest:
-        specifier: ^3.0.0
+        specifier: ^3.2.4
         version: 3.2.4(@types/node@25.3.2)(jiti@1.21.7)(tsx@4.21.0)
 
   packages/local-web:

@@ -32,10 +32,6 @@ export default defineConfig({
         target: `http://localhost:${process.env.BACKEND_PORT || '3001'}`,
         changeOrigin: true,
       },
-      '/auth/logout': {
-        target: `http://localhost:${process.env.BACKEND_PORT || '3001'}`,
-        changeOrigin: true,
-      },
     },
     fs: {
       allow: [path.resolve(__dirname, '.'), path.resolve(__dirname, '../..')],
