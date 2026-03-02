@@ -1,5 +1,6 @@
 import { verify } from 'hono/jwt'
 import type { UserRegistry } from '../registry/types.js'
+import { env } from './env.js'
 
 export interface GitHubContext {
   accessToken: string
@@ -15,7 +16,7 @@ export async function getGitHubContext(
 ): Promise<GitHubContext> {
   if (!authHeader?.startsWith('Bearer ')) throw new Error('Unauthorized')
 
-  const secret = process.env.JWT_SECRET!
+  const secret = env.JWT_SECRET
   const payload = await verify(authHeader.slice(7), secret, 'HS256').catch(() => {
     throw new Error('Unauthorized')
   }) as any

@@ -13,16 +13,17 @@ import { getGitHubContext } from './lib/get-github-context.js'
 import { listTasksGH, listSprintsGH, listPeopleGH } from './store/github-store.js'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import { env } from './lib/env.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // Use KV registry on Vercel, file registry locally
-const registry = process.env.VERCEL
+const registry = env.isVercel
   ? new KVRegistry()
   : new FileRegistry(join(__dirname, '../../data/users.json'))
 
-const FRONTEND_URL = process.env.FRONTEND_URL ?? 'http://localhost:5173'
-const PORT = parseInt(process.env.PORT ?? '3001', 10)
+const FRONTEND_URL = env.FRONTEND_URL
+const PORT = env.PORT
 
 export const app = new Hono()
 

@@ -1,12 +1,13 @@
 import { Hono } from 'hono'
 import { sign, verify } from 'hono/jwt'
 import type { UserRegistry } from '../registry/types.js'
+import { env } from '../lib/env.js'
 
-const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID!
-const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET!
-const JWT_SECRET = process.env.JWT_SECRET!
-const FRONTEND_URL = process.env.FRONTEND_URL ?? 'http://localhost:5173'
-const BACKEND_URL = process.env.BACKEND_URL ?? 'http://localhost:3001'
+const GITHUB_CLIENT_ID = env.GITHUB_CLIENT_ID
+const GITHUB_CLIENT_SECRET = env.GITHUB_CLIENT_SECRET
+const JWT_SECRET = env.JWT_SECRET
+const FRONTEND_URL = env.FRONTEND_URL
+const BACKEND_URL = env.BACKEND_URL
 
 export function createAuthRouter(registry: UserRegistry) {
   const app = new Hono()
