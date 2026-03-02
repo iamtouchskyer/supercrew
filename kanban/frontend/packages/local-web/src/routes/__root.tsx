@@ -102,7 +102,7 @@ function RootLayout() {
   const dockItems: DockItemConfig[] = [
     {
       icon: <LightningIcon size={17} weight="fill" color="var(--rb-accent)" />,
-      label: 'Crew',
+      label: 'Super Crew',
       className: '',
     },
     {

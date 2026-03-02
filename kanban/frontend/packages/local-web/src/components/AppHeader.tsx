@@ -81,7 +81,7 @@ export default function AppHeader({ dark, onToggleTheme, onLogout, onDisconnect 
           fontFamily: 'Instrument Sans, sans-serif',
           letterSpacing: '-0.01em',
         }}>
-          Crew
+          Super Crew
         </span>
       </div>
 
