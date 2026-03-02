@@ -12,6 +12,7 @@
     "typecheck": "cd backend && npm run typecheck:node"
   },
   "dependencies": {
+    "@hono/node-server": "^1.19.9",
     "@types/node": "^25.3.3",
     "hono": "^4.12.3"
   },
