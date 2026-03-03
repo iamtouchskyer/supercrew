@@ -77,12 +77,18 @@ plugins/supercrew/
 - **`log-progress`**: 每次 session 结束时自动追加 `log.md`，记录本次工作内容、完成的 tasks、遇到的问题
 
 ### 1.4 Hooks
-- **SessionStart**: 检测当前 repo 是否有 `.supercrew/features/` → 有则注入所有 feature 的 meta 信息到 context → 提示 AI 当前活跃 feature 和进度
+- **SessionStart**: 检测当前 repo 是否有 `.supercrew/features/` → 有则执行 **Active Feature 匹配**，确定当前 session 聚焦的 feature：
+  1. **Git branch 名匹配**（优先）：当前分支名 `feature/<id>` → 自动关联 `.supercrew/features/<id>/`，注入该 feature 的完整 context（meta + design + plan progress + 最近 log）。无论是普通 checkout 还是 git worktree 均适用（均通过 `git branch --show-current` 读取）
+  2. **用户显式选择**：无匹配时，列出所有 `status != done` 的 features 摘要表（id | title | status | progress），请求用户确认："当前 session 聚焦哪个 feature？"
+  3. 确认后，后续 `update-status`、`sync-plan`、`log-progress` 等 skill 自动作用于该 feature
+  4. 始终注入所有 feature 的简要列表到 context（确保 AI 知道全局状态），但仅对 active feature 注入详细信息
+  - **注**：MVP 不强制使用 git worktree，branch 匹配对 checkout 和 worktree 均兼容。Worktree 自动化生命周期管理在 Post-MVP 引入（见 Next Steps Iteration 1）
 - **pre-commit hook**: 校验 `.supercrew/features/*/meta.yaml` 的 schema 合法性（必填字段、status 枚举值、priority 枚举值）；校验 `plan.md` frontmatter 的 `total_tasks ≥ completed_tasks`
 
 ### 1.5 Commands
 - **`/new-feature`**: 触发 `create-feature` skill，交互式创建新 feature
 - **`/feature-status`**: 显示所有 feature 的当前状态概览（表格形式：id | title | status | progress | owner）
+- **`/work-on <feature-id>`**: 切换当前 session 聚焦的 feature（覆盖 SessionStart 的自动匹配结果），后续所有 skill 操作自动作用于该 feature
 
 ### 1.6 Agent
 - **`supercrew-manager`**: 综合 agent，可以执行所有 skills，负责在适当时机自动调用 `update-status`、`sync-plan`、`log-progress`
@@ -239,9 +245,9 @@ plugins/supercrew/
 
 MVP 解决了 Layer 2（团队协调层）中"项目管理可见性"和"设计/文档强制性"两大核心缺口。以下迭代聚焦补齐剩余 gap：**跨组协调**、**时间节奏（Sprint）**、**Agent 能力深化**、**上线协调**。
 
-### Iteration 1: supercrew-manager Agent 能力增强
+### Iteration 1: supercrew-manager Agent 能力增强 + Worktree 自动化
 
-MVP 的 `supercrew-manager` agent 描述过于简略。参考 `ddd-tech-lead` agent 的设计深度，迭代 1 补充完整的 agent prompt 设计：
+MVP 的 `supercrew-manager` agent 描述过于简略。参考 `ddd-tech-lead` agent 的设计深度，迭代 1 补充完整的 agent prompt 设计。同时引入 git worktree 自动化，消除 MVP 阶段手动管理分支的摩擦。
 
 #### 1.1 决策指引框架
 - **Feature 识别**：用户描述需求时，自动判断是新建 feature 还是归属已有 feature
@@ -270,6 +276,13 @@ Agent 在每次操作前/后执行自检：
 - 关键决策需提供上下文说明
 - 需求模糊时主动提出澄清问题
 - 区分 Critical/Important/Minor 事项
+
+#### 1.5 Git Worktree 自动化
+MVP 阶段用户手动管理分支，Iter 1 引入 worktree 自动化生命周期管理，消除手动操作摩擦：
+- **`/new-feature` 增强**：创建 feature 时自动执行 `git worktree add .worktrees/<id> feature/<id>` + 安装依赖 + 提示用户在新窗口打开该目录
+- **`/close-feature <id>`**（新增 command）：merge/PR + `git worktree remove` + 清理分支，用户无需了解 worktree 命令
+- **SessionStart hook** 在 worktree 下天然准确匹配 active feature（每个 worktree 锁定一个 branch，不存在 session 中途切分支的问题）
+- 兼容 superpowers 的 `using-git-worktrees` skill
 
 ### Iteration 2: Sprint 机制引入
 
@@ -349,7 +362,7 @@ Agent 在每次操作前/后执行自检：
 | 迭代 | 聚焦 | 解决的 Layer 2 问题 | 建议时间 |
 |---|---|---|---|
 | **MVP** | Feature lifecycle + 只读看板 | 项目管理、设计/文档 | 当前 |
-| **Iter 1** | Agent 能力增强 | 提升自动化程度，减少人工维护负担 | MVP 后 1-2 周 |
+| **Iter 1** | Agent 能力增强 + Worktree 自动化 | 提升自动化程度，减少人工维护负担，消除分支管理摩擦 | MVP 后 1-2 周 |
 | **Iter 2** | Sprint 机制 | 时间节奏、任务粒度管理 | Iter 1 后 2-3 周 |
 | **Iter 3** | 跨 Feature 协调 | 小组不通气、架构治理 | Iter 2 后 2-3 周 |
 | **Iter 4** | Release 协调 | 上线难度高 | Iter 3 后 2-3 周 |
