@@ -45,15 +45,14 @@ plugins/supercrew/
 │   ├── create-feature/SKILL.md        # 创建 feature 目录 + 4 文件
 │   ├── update-status/SKILL.md         # 状态流转
 │   ├── sync-plan/SKILL.md             # 生成/更新 plan.md
-│   └── log-progress/SKILL.md         # 追加 log.md
+│   ├── log-progress/SKILL.md         # 追加 log.md
+│   └── managing-features/SKILL.md    # 综合管理 skill，自动协调上述 skills
 ├── commands/
 │   ├── new-feature.md                 # /new-feature slash command
 │   └── feature-status.md             # /feature-status slash command
 ├── hooks/
 │   ├── hooks.json                     # SessionStart hook
 │   └── session-start                  # 注入 .supercrew context
-├── agents/
-│   └── supercrew-manager.md           # 综合管理 agent
 └── templates/
     ├── meta.yaml.tmpl
     ├── design.md.tmpl
@@ -90,8 +89,12 @@ plugins/supercrew/
 - **`/feature-status`**: 显示所有 feature 的当前状态概览（表格形式：id | title | status | progress | owner）
 - **`/work-on <feature-id>`**: 切换当前 session 聚焦的 feature（覆盖 SessionStart 的自动匹配结果），后续所有 skill 操作自动作用于该 feature
 
-### 1.6 Agent
-- **`supercrew-manager`**: 综合 agent，可以执行所有 skills，负责在适当时机自动调用 `update-status`、`sync-plan`、`log-progress`
+### 1.6 Managing-Features Skill（综合管理）
+- **`managing-features`**: 综合管理 skill，当 Claude 检测到用户在含 `.supercrew/features/` 的 repo 中工作时自动触发。负责在适当时机协调调用 `update-status`、`sync-plan`、`log-progress` 等子 skill，包括：
+  - 代码变更后自动建议更新 feature status
+  - design 完成后自动建议生成 plan
+  - session 结束前自动提醒记录 log
+  - 检测到状态不一致时主动提醒（如 `plan.md` progress 与实际 checklist 不符）
 
 ---
 
