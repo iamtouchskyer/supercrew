@@ -1,15 +1,60 @@
 # SuperCrew
 
-SuperCrew combines two things: a structured AI development workflow (powered by superpowers skills) and a kanban-style team management app built with those same workflows.
+SuperCrew combines two things: a structured AI development workflow (powered by superpowers skills) and a kanban-style feature management app built with those same workflows.
 
 ## What's Inside
 
+### `plugins/supercrew/` — The Claude Code Plugin
+
+AI-driven feature lifecycle management. Track features from idea to done using structured `.supercrew/features/` directories in your repo.
+
+**Install in Claude Code:**
+
+```bash
+# 1. Add the local marketplace (use absolute path)
+/plugin marketplace add /path/to/supercrew/plugins/supercrew
+
+# 2. Install the plugin
+/plugin install supercrew@supercrew-dev
+
+# 3. Verify
+/plugin list
+```
+
+**Commands:**
+
+| Command | Description |
+|---|---|
+| `/supercrew:new-feature` | Create a new feature with meta.yaml, design.md, plan.md, log.md |
+| `/supercrew:feature-status` | Show all features status table |
+| `/supercrew:work-on` | Switch active feature for this session |
+
+**Feature lifecycle:**
+
+```
+planning → designing → ready → active → blocked → done
+```
+
+Each feature lives in `.supercrew/features/<id>/` with four files:
+
+| File | Purpose |
+|---|---|
+| `meta.yaml` | ID, title, status, priority, owner, dates |
+| `design.md` | Requirements, architecture, constraints |
+| `plan.md` | Task breakdown with checklist & progress |
+| `log.md` | Chronological progress entries |
+
+The plugin's SessionStart hook auto-detects `feature/<id>` branches and loads context.
+
 ### `kanban/` — The Crew App
 
-A lightweight team kanban board with GitHub integration. Features:
+A read-only kanban board that visualizes features from `.supercrew/features/`. Connect a GitHub repo and see your feature lifecycle at a glance.
+
+Features:
 - GitHub OAuth login
-- Connect a GitHub repo to your project
-- Board, People, Knowledge, Decisions pages
+- Connect a GitHub repo with `.supercrew/features/`
+- 6-column kanban board: Planning → Designing → Ready → Active → Blocked → Done
+- Feature detail page with Overview / Design / Plan tabs
 - i18n (English / Chinese)
 - Dark mode
 

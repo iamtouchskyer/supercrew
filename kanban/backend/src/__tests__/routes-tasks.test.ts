@@ -6,9 +6,9 @@ process.env.JWT_SECRET = 'test-jwt-secret'
 
 const { app } = await import('../index.js')
 
-describe('GET /api/tasks', () => {
+describe('GET /api/features', () => {
   it('returns 401 without auth', async () => {
-    const res = await app.request('/api/tasks')
+    const res = await app.request('/api/features')
     expect(res.status).toBe(401)
   })
 })

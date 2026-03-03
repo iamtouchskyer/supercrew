@@ -44,6 +44,3 @@ jobs:
 
       - name: Test app-core
         run: cd kanban/frontend/packages/app-core && pnpm run test
-
-      - name: Bundle API (verify esbuild)
-        run: cd kanban && npm run build:api

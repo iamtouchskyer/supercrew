@@ -1,0 +1,12 @@
+{
+  "name": "supercrew",
+  "description": "AI-driven feature lifecycle management. Creates and manages .supercrew/features/ directories with meta.yaml, design.md, plan.md, and log.md for structured feature development.",
+  "version": "0.1.0",
+  "author": {
+    "name": "steinsz"
+  },
+  "homepage": "https://github.com/nicepkg/supercrew",
+  "repository": "https://github.com/nicepkg/supercrew",
+  "license": "MIT",
+  "keywords": ["feature-management", "kanban", "lifecycle", "planning", "tracking"]
+}

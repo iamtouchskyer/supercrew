@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { LightningIcon, MagnifyingGlassIcon, CheckCircleIcon, WarningCircleIcon, CaretDownIcon } from '@phosphor-icons/react'
 import { Popover, PopoverTrigger, PopoverContent } from '@radix-ui/react-popover'
-import { authHeaders } from '@vibe/app-core'
+import { authHeaders, isAuthenticated } from '@vibe/app-core'
 import { useTranslation } from 'react-i18next'
 import DotGrid from '@web/components/DotGrid'
 import LangToggle from '@web/components/LangToggle'
@@ -236,11 +236,11 @@ function StepSelectRepo({
   )
 }
 
-// ─── Step 3: 初始化确认 ───────────────────────────────────────────────────────
+// ─── Step 3: Bind repo ─────────────────────────────────────────────────────
 
-type InitStatus = 'loading' | 'success' | 'error'
+type BindStatus = 'loading' | 'success' | 'error'
 
-function StepInit({
+function StepBind({
   repo,
   onSuccess,
 }: {
@@ -249,32 +249,13 @@ function StepInit({
 }) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const [status, setStatus] = useState<InitStatus>('loading')
+  const [status, setStatus] = useState<BindStatus>('loading')
   const [errorMsg, setErrorMsg] = useState('')
 
-  const runInit = async () => {
+  const runBind = async () => {
     setStatus('loading')
     setErrorMsg('')
     try {
-      const [owner, repoName] = repo.full_name.split('/')
-
-      const statusRes = await fetch(
-        `/api/projects/github/repos/${owner}/${repoName}/init-status`,
-        { headers: authHeaders() }
-      )
-      const { initialized } = await statusRes.json()
-
-      if (!initialized) {
-        const initRes = await fetch(`/api/projects/github/repos/${owner}/${repoName}/init`, {
-          method: 'POST',
-          headers: authHeaders(),
-        })
-        if (!initRes.ok) {
-          const err = await initRes.json()
-          throw new Error(err.error ?? t('welcome.step3.initFailed'))
-        }
-      }
-
       await fetch('/api/projects', {
         method: 'POST',
         headers: { ...authHeaders(), 'Content-Type': 'application/json' },
@@ -290,7 +271,7 @@ function StepInit({
     }
   }
 
-  useEffect(() => { runInit() }, [])
+  useEffect(() => { runBind() }, [])
 
   return (
     <div style={{
@@ -316,7 +297,7 @@ function StepInit({
             animation: 'spin 0.8s linear infinite',
           }} />
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', margin: 0 }}>
-            {t('welcome.step3.initializing')}
+            {t('welcome.step3.binding')}
           </p>
         </div>
       )}
@@ -335,7 +316,7 @@ function StepInit({
           <WarningCircleIcon size={30} color="#f87171" weight="fill" />
           <p style={{ fontSize: 13, color: '#fca5a5', margin: 0 }}>{errorMsg}</p>
           <button
-            onClick={runInit}
+            onClick={runBind}
             style={{
               padding: '8px 20px', borderRadius: 8,
               background: 'var(--rb-accent)', color: '#000',
@@ -357,6 +338,13 @@ function WelcomePage() {
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1)
   const [selectedRepo, setSelectedRepo] = useState<GithubRepo | null>(null)
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate({ to: '/login', search: { error: undefined, token: undefined } })
+    }
+  }, [])
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden', background: '#060010' }}>
@@ -405,7 +393,7 @@ function WelcomePage() {
 
           <Step>
             {selectedRepo ? (
-              <StepInit repo={selectedRepo} onSuccess={() => navigate({ to: '/' })} />
+              <StepBind repo={selectedRepo} onSuccess={() => navigate({ to: '/' })} />
             ) : (
               <div style={{ padding: '20px 0', textAlign: 'center', color: 'rgba(255,255,255,0.45)', fontSize: 13 }}>
                 {t('welcome.step3.noRepo')}

@@ -1,16 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { DropResult } from '@hello-pangea/dnd'
-import {
-  KanbanProvider,
-  KanbanCards,
-  KanbanCard,
-} from '@vibe/ui/components/KanbanBoard'
-import { PlusIcon } from '@phosphor-icons/react'
 import { useTranslation } from 'react-i18next'
 import { useBoard } from '@app/hooks/useBoard'
-import { useUpdateTaskStatus } from '@app/hooks/useMutations'
-import type { Task, TaskPriority, TaskStatus } from '@app/types'
+import type { FeatureMeta, FeaturePriority, SupercrewStatus } from '@app/types'
 import SpotlightCard from '@web/components/SpotlightCard'
 import CountUp from '@web/components/CountUp'
 import ClickSpark from '@web/components/ClickSpark'
@@ -18,23 +9,24 @@ import AnimatedCard from '@web/components/AnimatedCard'
 
 // ─── Column config ──────────────────────────────────────────────────────────
 
-const STATUS_COLUMN_IDS: TaskStatus[] = ['backlog', 'todo', 'in-progress', 'in-review', 'done']
+const STATUS_COLUMN_IDS: SupercrewStatus[] = [
+  'planning', 'designing', 'ready', 'active', 'blocked', 'done',
+]
 
-const STATUS_KEY_MAP: Record<TaskStatus, string> = {
-  'backlog':     'board.columns.backlog',
-  'todo':        'board.columns.todo',
-  'in-progress': 'board.columns.inProgress',
-  'in-review':   'board.columns.inReview',
-  'done':        'board.columns.done',
+const STATUS_KEY_MAP: Record<SupercrewStatus, string> = {
+  'planning':  'board.columns.planning',
+  'designing': 'board.columns.designing',
+  'ready':     'board.columns.ready',
+  'active':    'board.columns.active',
+  'blocked':   'board.columns.blocked',
+  'done':      'board.columns.done',
 }
 
-function getStatusKey(status: TaskStatus): string {
-  if (status === 'in-progress') return 'progress'
-  if (status === 'in-review') return 'review'
+function getStatusKey(status: SupercrewStatus): string {
   return status
 }
 
-const PRI_CLASS: Record<TaskPriority, string> = {
+const PRI_CLASS: Record<FeaturePriority, string> = {
   P0: 'rb-p0', P1: 'rb-p1', P2: 'rb-p2', P3: 'rb-p3',
 }
 
@@ -42,62 +34,13 @@ const PRI_CLASS: Record<TaskPriority, string> = {
 
 function BoardPage() {
   const { t } = useTranslation()
-  const { tasks, activeSprint, isLoading } = useBoard()
-  const updateStatus = useUpdateTaskStatus()
+  const { featuresByStatus, isLoading } = useBoard()
   const navigate = useNavigate()
 
   const STATUS_COLUMNS = STATUS_COLUMN_IDS.map(id => ({
     id,
     name: t(STATUS_KEY_MAP[id]),
   }))
-
-  const [columns, setColumns] = useState<Record<string, string[]>>({})
-
-  useEffect(() => {
-    const grouped: Record<string, string[]> = {}
-    for (const col of STATUS_COLUMNS) grouped[col.id] = []
-    for (const task of tasks) {
-      if (grouped[task.status]) grouped[task.status].push(task.id)
-    }
-    setColumns(grouped)
-  }, [tasks])
-
-  const taskMap = useMemo(() => {
-    const m: Record<string, Task> = {}
-    for (const t of tasks) m[t.id] = t
-    return m
-  }, [tasks])
-
-  const handleDragEnd = useCallback(
-    (result: DropResult) => {
-      const { source, destination } = result
-      if (!destination) return
-      if (
-        source.droppableId === destination.droppableId &&
-        source.index === destination.index
-      ) return
-
-      const srcId = source.droppableId as TaskStatus
-      const dstId = destination.droppableId as TaskStatus
-
-      setColumns(prev => {
-        const srcItems = [...(prev[srcId] ?? [])]
-        const [moved] = srcItems.splice(source.index, 1)
-        if (srcId === dstId) {
-          srcItems.splice(destination.index, 0, moved)
-          return { ...prev, [srcId]: srcItems }
-        }
-        const dstItems = [...(prev[dstId] ?? [])]
-        dstItems.splice(destination.index, 0, moved)
-        return { ...prev, [srcId]: srcItems, [dstId]: dstItems }
-      })
-
-      if (srcId !== dstId) {
-        updateStatus.mutate({ id: result.draggableId, status: dstId })
-      }
-    },
-    [updateStatus],
-  )
 
   const isDark = document.documentElement.classList.contains('dark')
 
@@ -117,56 +60,26 @@ function BoardPage() {
   return (
     <div className="rb-page" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
-      {/* ── Sprint header ── */}
-      {activeSprint && (
-        <div style={{
-          padding: '13px 22px 11px',
-          borderBottom: '1px solid hsl(var(--_border))',
-          flexShrink: 0,
-          background: 'hsl(var(--_background))',
-        }}>
-          <div className="rb-label" style={{ marginBottom: 3 }}>{t('board.activeSprint')}</div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-            <h1 className="rb-display" style={{
-              fontSize: 15, fontWeight: 700,
-              color: 'hsl(var(--text-high))',
-              margin: 0,
-            }}>
-              {activeSprint.name}
-            </h1>
-            {activeSprint.goal && (
-              <span style={{ fontSize: 12.5, color: 'hsl(var(--text-low))' }}>
-                {activeSprint.goal}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* ── Kanban board with ClickSpark ── */}
       <div style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden', padding: '16px 18px' }}>
-        <KanbanProvider onDragEnd={handleDragEnd}>
-          <ClickSpark
-            sparkColor={isDark ? '#34d399' : '#10b981'}
-            sparkCount={7}
-            sparkRadius={22}
-            sparkSize={7}
-          >
-            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', minWidth: 'max-content', padding: 2 }}>
-              {STATUS_COLUMNS.map(col => (
-                <Column
-                  key={col.id}
-                  col={col}
-                  taskIds={columns[col.id] ?? []}
-                  taskMap={taskMap}
-                  isDark={isDark}
-                  onCardClick={id => void navigate({ to: '/tasks/$id', params: { id } })}
-                  onAdd={() => void navigate({ to: '/' })}
-                />
-              ))}
-            </div>
-          </ClickSpark>
-        </KanbanProvider>
+        <ClickSpark
+          sparkColor={isDark ? '#34d399' : '#10b981'}
+          sparkCount={7}
+          sparkRadius={22}
+          sparkSize={7}
+        >
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', minWidth: 'max-content', padding: 2 }}>
+            {STATUS_COLUMNS.map(col => (
+              <Column
+                key={col.id}
+                col={col}
+                features={featuresByStatus[col.id] ?? []}
+                isDark={isDark}
+                onCardClick={id => void navigate({ to: '/features/$id', params: { id } })}
+              />
+            ))}
+          </div>
+        </ClickSpark>
       </div>
     </div>
   )
@@ -176,20 +89,15 @@ function BoardPage() {
 
 function Column({
   col,
-  taskIds,
-  taskMap,
+  features,
   isDark,
   onCardClick,
-  onAdd,
 }: {
-  col: { id: TaskStatus; name: string }
-  taskIds: string[]
-  taskMap: Record<string, Task>
+  col: { id: SupercrewStatus; name: string }
+  features: FeatureMeta[]
   isDark: boolean
   onCardClick: (id: string) => void
-  onAdd: () => void
 }) {
-  const { t } = useTranslation()
   const sk = getStatusKey(col.id)
 
   return (
@@ -215,59 +123,36 @@ function Column({
           }}>
             {col.name}
           </span>
-          {/* CountUp — re-triggers animation when count changes */}
           <span style={{ fontSize: 10, color: 'hsl(var(--text-low))' }}>
-            <CountUp key={taskIds.length} to={taskIds.length} duration={0.6} className="rb-mono" />
+            <CountUp key={features.length} to={features.length} duration={0.6} className="rb-mono" />
           </span>
         </div>
-        <button
-          className="rb-btn-icon"
-          style={{ width: 24, height: 24 }}
-          onClick={onAdd}
-          title={t('board.addTo', { name: col.name })}
-        >
-          <PlusIcon size={12} weight="bold" />
-        </button>
       </div>
 
-      {/* Droppable area */}
+      {/* Card area (read-only, no drag) */}
       <div style={{
         background: 'hsl(var(--_bg-secondary-default))',
         border: '1px solid hsl(var(--_border))',
         borderTop: 'none',
         borderRadius: '0 0 10px 10px',
         minHeight: 120,
+        padding: 7,
       }}>
-        <KanbanCards id={col.id}>
-          <div style={{ padding: 7 }}>
-            {taskIds.map((taskId, index) => {
-              const task = taskMap[taskId]
-              if (!task) return null
-              return (
-                <KanbanCard
-                  key={task.id}
-                  id={task.id}
-                  name={task.title}
-                  index={index}
-                  onClick={() => onCardClick(task.id)}
-                >
-                  {/* AnimatedCard entry animation (CSS-only, no DnD conflict) */}
-                  <AnimatedCard index={index}>
-                    <TaskCard task={task} statusKey={sk} isDark={isDark} />
-                  </AnimatedCard>
-                </KanbanCard>
-              )
-            })}
-          </div>
-        </KanbanCards>
+        {features.map((feature, index) => (
+          <AnimatedCard key={feature.id} index={index}>
+            <div onClick={() => onCardClick(feature.id)} style={{ cursor: 'pointer' }}>
+              <FeatureCard feature={feature} statusKey={sk} isDark={isDark} />
+            </div>
+          </AnimatedCard>
+        ))}
       </div>
     </div>
   )
 }
 
-// ─── Task card visual (SpotlightCard) ───────────────────────────────────────
+// ─── Feature card visual (SpotlightCard) ────────────────────────────────────
 
-function TaskCard({ task, statusKey, isDark }: { task: Task; statusKey: string; isDark: boolean }) {
+function FeatureCard({ feature, statusKey, isDark }: { feature: FeatureMeta; statusKey: string; isDark: boolean }) {
   return (
     <SpotlightCard
       className={`rb-card rb-lift rb-glass rb-bar-${statusKey}`}
@@ -285,11 +170,11 @@ function TaskCard({ task, statusKey, isDark }: { task: Task; statusKey: string; 
         marginBottom: 5,
       }}>
         <span className="rb-mono" style={{ color: 'hsl(var(--text-low))', fontSize: 9.5 }}>
-          {task.id}
+          {feature.id}
         </span>
-        {task.priority && (
-          <span className={`rb-mono ${PRI_CLASS[task.priority]}`} style={{ fontSize: 9.5 }}>
-            {task.priority}
+        {feature.priority && (
+          <span className={`rb-mono ${PRI_CLASS[feature.priority]}`} style={{ fontSize: 9.5 }}>
+            {feature.priority}
           </span>
         )}
       </div>
@@ -302,20 +187,23 @@ function TaskCard({ task, statusKey, isDark }: { task: Task; statusKey: string; 
         margin: 0,
         fontFamily: 'Instrument Sans, sans-serif',
       }}>
-        {task.title}
+        {feature.title}
       </p>
 
-      {/* Tags */}
-      {task.tags.length > 0 && (
+      {/* Tags + Teams */}
+      {((feature.tags && feature.tags.length > 0) || (feature.teams && feature.teams.length > 0)) && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 7 }}>
-          {task.tags.slice(0, 3).map(t => (
-            <span key={t} className="rb-tag">{t}</span>
+          {(feature.teams ?? []).slice(0, 2).map(team => (
+            <span key={team} className="rb-tag" style={{ opacity: 0.7 }}>{team}</span>
+          ))}
+          {(feature.tags ?? []).slice(0, 2).map(tag => (
+            <span key={tag} className="rb-tag">{tag}</span>
           ))}
         </div>
       )}
 
-      {/* Assignee */}
-      {task.assignee && (
+      {/* Owner */}
+      {feature.owner && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: 5,
           marginTop: 8, paddingTop: 8,
@@ -330,10 +218,10 @@ function TaskCard({ task, statusKey, isDark }: { task: Task; statusKey: string; 
             color: 'var(--rb-accent)',
             flexShrink: 0,
           }}>
-            {task.assignee.charAt(0).toUpperCase()}
+            {feature.owner.charAt(0).toUpperCase()}
           </div>
           <span style={{ fontSize: 10.5, color: 'hsl(var(--text-low))', fontFamily: 'Instrument Sans, sans-serif' }}>
-            {task.assignee}
+            {feature.owner}
           </span>
         </div>
       )}

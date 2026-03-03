@@ -2,13 +2,13 @@ import { Outlet, createRootRoute, useRouterState, useNavigate } from '@tanstack/
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  SquaresFourIcon, UsersIcon, BookOpenIcon,
-  LightbulbIcon, LightningIcon,
+  SquaresFourIcon,
+  LightningIcon,
 } from '@phosphor-icons/react'
 import { useTranslation } from 'react-i18next'
 import AppHeader from '@web/components/AppHeader'
 import Dock from '@web/components/Dock'
-import { isAuthenticated, authHeaders, clearToken } from '@vibe/app-core'
+import { isAuthenticated, authHeaders, clearToken, verifyToken } from '@vibe/app-core'
 import type { DockItemConfig } from '@web/components/Dock'
 
 const PUBLIC_PATHS = ['/login', '/auth/callback', '/welcome']
@@ -37,10 +37,19 @@ function RootLayout() {
   const navigate = useNavigate()
 
   // Route guard: redirect to /login if not authenticated on protected routes
+  // Also verifies token server-side on mount to catch JWT_SECRET rotation
   useEffect(() => {
-    if (!PUBLIC_PATHS.includes(pathname) && !isAuthenticated()) {
+    if (PUBLIC_PATHS.includes(pathname)) return
+    if (!isAuthenticated()) {
       navigate({ to: '/login', search: { error: undefined, token: undefined } })
+      return
     }
+    // Server-side verification (runs once on mount + on path change)
+    verifyToken().then(valid => {
+      if (!valid) {
+        navigate({ to: '/login', search: { error: undefined, token: undefined } })
+      }
+    })
   }, [pathname])
 
   // FRE detection: if authenticated but no projects, go to /welcome
@@ -110,24 +119,6 @@ function RootLayout() {
       label: t('nav.board'),
       onClick: () => navigate({ to: '/' }),
       className: isActive('/', true) ? 'dock-item-active' : '',
-    },
-    {
-      icon: <UsersIcon size={17} weight={iconWeight('/people')} color={iconColor('/people')} />,
-      label: t('nav.people'),
-      onClick: () => navigate({ to: '/people' }),
-      className: isActive('/people') ? 'dock-item-active' : '',
-    },
-    {
-      icon: <BookOpenIcon size={17} weight={iconWeight('/knowledge')} color={iconColor('/knowledge')} />,
-      label: t('nav.knowledge'),
-      onClick: () => navigate({ to: '/knowledge' }),
-      className: isActive('/knowledge') ? 'dock-item-active' : '',
-    },
-    {
-      icon: <LightbulbIcon size={17} weight={iconWeight('/decisions')} color={iconColor('/decisions')} />,
-      label: t('nav.decisions'),
-      onClick: () => navigate({ to: '/decisions' }),
-      className: isActive('/decisions') ? 'dock-item-active' : '',
     },
   ]
 

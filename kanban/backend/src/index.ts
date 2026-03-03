@@ -4,13 +4,9 @@ import { KVRegistry } from './registry/kv-registry.js'
 import { FileRegistry } from './registry/file-registry.js'
 import { createAuthRouter } from './routes/auth.js'
 import { createProjectsRouter } from './routes/projects.js'
-import { createTasksRouter } from './routes/tasks.js'
-import { createSprintsRouter } from './routes/sprints.js'
-import { createPeopleRouter } from './routes/people.js'
-import { createKnowledgeRouter } from './routes/knowledge.js'
-import { createDecisionsRouter } from './routes/decisions.js'
+import { createFeaturesRouter, buildFeatureBoard } from './routes/features.js'
 import { getGitHubContext } from './lib/get-github-context.js'
-import { listTasksGH, listSprintsGH, listPeopleGH } from './store/github-store.js'
+import { listFeaturesGH } from './store/github-store.js'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { env } from './lib/env.js'
@@ -35,22 +31,14 @@ app.use('*', cors({
 
 app.route('/auth', createAuthRouter(registry))
 app.route('/api/projects', createProjectsRouter(registry))
-app.route('/api/tasks', createTasksRouter(registry))
-app.route('/api/sprints', createSprintsRouter(registry))
-app.route('/api/people', createPeopleRouter(registry))
-app.route('/api/knowledge', createKnowledgeRouter(registry))
-app.route('/api/decisions', createDecisionsRouter(registry))
+app.route('/api/features', createFeaturesRouter(registry))
 
-// Board: aggregate endpoint
+// Board: aggregate endpoint — features grouped by status
 app.get('/api/board', async (c) => {
   try {
     const ctx = await getGitHubContext(c.req.header('Authorization'), registry)
-    const [tasks, sprints, people] = await Promise.all([
-      listTasksGH(ctx.accessToken, ctx.owner, ctx.repo),
-      listSprintsGH(ctx.accessToken, ctx.owner, ctx.repo),
-      listPeopleGH(ctx.accessToken, ctx.owner, ctx.repo),
-    ])
-    return c.json({ tasks, sprints, people })
+    const features = await listFeaturesGH(ctx.accessToken, ctx.owner, ctx.repo)
+    return c.json(buildFeatureBoard(features))
   } catch (e: any) {
     return c.json({ error: e.message }, e.message === 'Unauthorized' ? 401 : 400)
   }

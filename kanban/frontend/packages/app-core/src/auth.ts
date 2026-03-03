@@ -27,3 +27,21 @@ export function authHeaders(): Record<string, string> {
   const token = getToken()
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
+
+/**
+ * Server-side token verification via /auth/me.
+ * Returns true if the token is valid (signature + expiry), false otherwise.
+ * On failure, automatically clears the invalid token from localStorage.
+ */
+export async function verifyToken(): Promise<boolean> {
+  if (!isAuthenticated()) return false
+  try {
+    const res = await fetch('/auth/me', { headers: authHeaders() })
+    if (res.ok) return true
+    clearToken()
+    return false
+  } catch {
+    clearToken()
+    return false
+  }
+}

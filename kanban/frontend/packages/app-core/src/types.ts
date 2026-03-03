@@ -1,66 +1,49 @@
 // Mirror of backend types — keep in sync with kanban/backend/src/types/index.ts
 
-export type TaskStatus = 'backlog' | 'todo' | 'in-progress' | 'in-review' | 'done'
-export type TaskPriority = 'P0' | 'P1' | 'P2' | 'P3'
+export type SupercrewStatus = 'planning' | 'designing' | 'ready' | 'active' | 'blocked' | 'done'
+export type FeaturePriority = 'P0' | 'P1' | 'P2' | 'P3'
+export type DesignStatus = 'draft' | 'in-review' | 'approved' | 'rejected'
 
-export interface Task {
+export interface FeatureMeta {
   id: string
   title: string
-  status: TaskStatus
-  priority: TaskPriority
-  assignee?: string
-  team?: string
-  sprint?: number
+  status: SupercrewStatus
+  owner: string
+  priority: FeaturePriority
+  teams?: string[]
+  target_release?: string
   created: string
   updated: string
-  tags: string[]
-  blocks: string[]
-  blocked_by: string[]
-  plan_doc?: string
-  pr_url?: string
+  tags?: string[]
+  blocked_by?: string[]
+}
+
+export interface DesignDoc {
+  status: DesignStatus
+  reviewers: string[]
+  approved_by?: string
   body: string
 }
 
-export interface Sprint {
-  id: number
-  name: string
-  start: string
-  end: string
-  goal: string
-  status: 'planned' | 'active' | 'completed'
-}
-
-export interface Person {
-  username: string
-  name: string
-  team: string
-  updated: string
-  current_task?: string
-  blocked_by?: string
-  completed_today: string[]
+export interface PlanDoc {
+  total_tasks: number
+  completed_tasks: number
+  progress: number
   body: string
 }
 
-export interface KnowledgeEntry {
-  slug: string
-  title: string
-  tags: string[]
-  author: string
-  date: string
+export interface FeatureLog {
   body: string
 }
 
-export interface Decision {
-  id: string
-  title: string
-  date: string
-  author: string
-  status: 'proposed' | 'accepted' | 'deprecated' | 'superseded'
-  body: string
+export interface Feature {
+  meta: FeatureMeta
+  design?: DesignDoc
+  plan?: PlanDoc
+  log?: FeatureLog
 }
 
-export interface Board {
-  tasks: Task[]
-  sprints: Sprint[]
-  people: Person[]
+export interface FeatureBoard {
+  features: FeatureMeta[]
+  featuresByStatus: Record<SupercrewStatus, FeatureMeta[]>
 }
