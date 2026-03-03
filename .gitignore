@@ -1,7 +1,17 @@
+# Dependencies
 node_modules/
-.worktrees/
+
+# Build output
 dist/
+
+# Environment
 .env
 .env.local
 *.local
+
+# macOS
+.DS_Store
+
+# Project
+.worktrees/
 .ref
