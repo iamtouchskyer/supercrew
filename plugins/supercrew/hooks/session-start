@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+# SessionStart hook for supercrew plugin
+# Detects .supercrew/features/ and injects active feature context
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Read using-supercrew skill content for context injection
+using_supercrew_content=$(cat "${PLUGIN_ROOT}/skills/using-supercrew/SKILL.md" 2>&1 || echo "Error reading using-supercrew skill")
+
+# Escape string for JSON embedding
+escape_for_json() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\n'/\\n}"
+    s="${s//$'\r'/\\r}"
+    s="${s//$'\t'/\\t}"
+    printf '%s' "$s"
+}
+
+# Check if .supercrew/features/ exists in the current working directory
+features_dir=".supercrew/features"
+if [ ! -d "$features_dir" ]; then
+    # No .supercrew/features/ found — inject skill context with minimal project info
+    using_escaped=$(escape_for_json "$using_supercrew_content")
+    context="<EXTREMELY_IMPORTANT>\nYou have supercrew installed.\n\n**Below is the full content of your 'supercrew:using-supercrew' skill — your guide to feature lifecycle management. For all other skills, use the Skill tool:**\n\n${using_escaped}\n\nThis project does not have a .supercrew/features/ directory yet. If the user wants to start tracking features, suggest using /supercrew:new-feature.\n</EXTREMELY_IMPORTANT>"
+    escaped=$(escape_for_json "$context")
+    cat <<EOF
+{
+  "additional_context": "${escaped}",
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": "${escaped}"
+  }
+}
+EOF
+    exit 0
+fi
+
+# --- .supercrew/features/ exists — build feature context ---
+
+# Get current branch for active feature matching
+current_branch=$(git branch --show-current 2>/dev/null || echo "")
+active_feature_id=""
+
+# Try to match branch name to feature ID (feature/<id> pattern)
+if [[ "$current_branch" == feature/* ]]; then
+    candidate="${current_branch#feature/}"
+    if [ -d "$features_dir/$candidate" ]; then
+        active_feature_id="$candidate"
+    fi
+fi
+
+# Build features summary table
+features_summary="| ID | Title | Status | Priority | Progress | Owner |\n|---|---|---|---|---|---|"
+feature_count=0
+
+for feature_dir in "$features_dir"/*/; do
+    [ -d "$feature_dir" ] || continue
+    feature_count=$((feature_count + 1))
+
+    fid=$(basename "$feature_dir")
+    meta_file="$feature_dir/meta.yaml"
+
+    if [ -f "$meta_file" ]; then
+        # Parse meta.yaml with simple grep/sed (no yq dependency)
+        title=$(grep '^title:' "$meta_file" | sed 's/^title: *"\{0,1\}\(.*\)"\{0,1\}$/\1/' | head -1)
+        status=$(grep '^status:' "$meta_file" | sed 's/^status: *//' | head -1)
+        priority=$(grep '^priority:' "$meta_file" | sed 's/^priority: *//' | head -1)
+        owner=$(grep '^owner:' "$meta_file" | sed 's/^owner: *"\{0,1\}\(.*\)"\{0,1\}$/\1/' | head -1)
+
+        # Get progress from plan.md
+        plan_file="$feature_dir/plan.md"
+        progress="N/A"
+        if [ -f "$plan_file" ]; then
+            prog_val=$(grep '^progress:' "$plan_file" | sed 's/^progress: *//' | head -1)
+            if [ -n "$prog_val" ]; then
+                progress="${prog_val}%"
+            fi
+        fi
+
+        features_summary="${features_summary}\n| ${fid} | ${title} | ${status} | ${priority} | ${progress} | ${owner} |"
+    fi
+done
+
+# Build active feature detail context
+active_detail=""
+if [ -n "$active_feature_id" ] && [ -d "$features_dir/$active_feature_id" ]; then
+    active_meta="$features_dir/$active_feature_id/meta.yaml"
+    active_design="$features_dir/$active_feature_id/design.md"
+    active_plan="$features_dir/$active_feature_id/plan.md"
+    active_log="$features_dir/$active_feature_id/log.md"
+
+    active_detail="\\n\\n## Active Feature: ${active_feature_id}\\n\\nMatched via branch: ${current_branch}\\n"
+
+    if [ -f "$active_meta" ]; then
+        meta_content=$(cat "$active_meta")
+        active_detail="${active_detail}\\n### meta.yaml\\n\`\`\`yaml\\n$(escape_for_json "$meta_content")\\n\`\`\`"
+    fi
+
+    # Include last 30 lines of log.md for recent context
+    if [ -f "$active_log" ]; then
+        log_tail=$(tail -30 "$active_log")
+        active_detail="${active_detail}\\n\\n### Recent Log (last 30 lines)\\n$(escape_for_json "$log_tail")"
+    fi
+
+    # Include plan progress summary
+    if [ -f "$active_plan" ]; then
+        plan_header=$(head -10 "$active_plan")
+        active_detail="${active_detail}\\n\\n### Plan Progress\\n\`\`\`\\n$(escape_for_json "$plan_header")\\n\`\`\`"
+    fi
+fi
+
+# Build no-match prompt
+no_match_prompt=""
+if [ -z "$active_feature_id" ] && [ "$feature_count" -gt 0 ]; then
+    no_match_prompt="\\n\\n**No active feature matched from branch '${current_branch}'.** Ask the user which feature they want to work on, or use /supercrew:work-on <feature-id> to set it."
+fi
+
+# Compose full context with skill injection
+using_escaped=$(escape_for_json "$using_supercrew_content")
+context="<EXTREMELY_IMPORTANT>\\nYou have supercrew installed.\\n\\n**Below is the full content of your 'supercrew:using-supercrew' skill — your guide to feature lifecycle management. For all other skills, use the Skill tool:**\\n\\n${using_escaped}\\n</EXTREMELY_IMPORTANT>\\n\\n<supercrew-context>\\nThis project has ${feature_count} feature(s) tracked in .supercrew/features/.\\n\\n## All Features\\n${features_summary}${active_detail}${no_match_prompt}\\n</supercrew-context>"
+
+escaped=$(escape_for_json "$context")
+
+cat <<EOF
+{
+  "additional_context": "${escaped}",
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": "${escaped}"
+  }
+}
+EOF
