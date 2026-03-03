@@ -1,8 +1,7 @@
 import { Hono } from 'hono'
 import { verify } from 'hono/jwt'
 import type { UserRegistry } from '../registry/types.js'
-
-const JWT_SECRET = process.env.JWT_SECRET!
+import { env } from '../lib/env.js'
 
 async function getPayload(authHeader: string | undefined) {
   if (!authHeader?.startsWith('Bearer ')) {
@@ -10,9 +9,9 @@ async function getPayload(authHeader: string | undefined) {
     throw new Error('Unauthorized')
   }
   try {
-    return await verify(authHeader.slice(7), JWT_SECRET, 'HS256') as any
+    return await verify(authHeader.slice(7), env.JWT_SECRET, 'HS256') as any
   } catch (e: any) {
-    console.log('[getPayload] verify failed:', e?.message, 'JWT_SECRET set:', !!JWT_SECRET)
+    console.log('[getPayload] verify failed:', e?.message, 'JWT_SECRET set:', !!env.JWT_SECRET)
     throw e
   }
 }

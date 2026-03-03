@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { LightningIcon, MagnifyingGlassIcon, CheckCircleIcon, WarningCircleIcon, CaretDownIcon } from '@phosphor-icons/react'
 import { Popover, PopoverTrigger, PopoverContent } from '@radix-ui/react-popover'
-import { authHeaders } from '@vibe/app-core'
+import { authHeaders, isAuthenticated } from '@vibe/app-core'
 import { useTranslation } from 'react-i18next'
 import DotGrid from '@web/components/DotGrid'
 import LangToggle from '@web/components/LangToggle'
@@ -357,6 +357,13 @@ function WelcomePage() {
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1)
   const [selectedRepo, setSelectedRepo] = useState<GithubRepo | null>(null)
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate({ to: '/login', search: { error: undefined, token: undefined } })
+    }
+  }, [])
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden', background: '#060010' }}>

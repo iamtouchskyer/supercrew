@@ -8,7 +8,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import AppHeader from '@web/components/AppHeader'
 import Dock from '@web/components/Dock'
-import { isAuthenticated, authHeaders, clearToken } from '@vibe/app-core'
+import { isAuthenticated, authHeaders, clearToken, verifyToken } from '@vibe/app-core'
 import type { DockItemConfig } from '@web/components/Dock'
 
 const PUBLIC_PATHS = ['/login', '/auth/callback', '/welcome']
@@ -37,10 +37,19 @@ function RootLayout() {
   const navigate = useNavigate()
 
   // Route guard: redirect to /login if not authenticated on protected routes
+  // Also verifies token server-side on mount to catch JWT_SECRET rotation
   useEffect(() => {
-    if (!PUBLIC_PATHS.includes(pathname) && !isAuthenticated()) {
+    if (PUBLIC_PATHS.includes(pathname)) return
+    if (!isAuthenticated()) {
       navigate({ to: '/login', search: { error: undefined, token: undefined } })
+      return
     }
+    // Server-side verification (runs once on mount + on path change)
+    verifyToken().then(valid => {
+      if (!valid) {
+        navigate({ to: '/login', search: { error: undefined, token: undefined } })
+      }
+    })
   }, [pathname])
 
   // FRE detection: if authenticated but no projects, go to /welcome
