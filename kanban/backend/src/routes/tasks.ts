@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { listTasksGH, readTaskGH, writeTaskGH, deleteTaskGH } from '../store/github-store.js'
 import { getGitHubContext } from '../lib/get-github-context.js'
+import { isSupercrewTask, readSupercrewFeature, updateSupercrewFeatureStatus, isSupcrewDemoEnabled } from '../store/supercrew-store.js'
 import type { UserRegistry } from '../registry/types.js'
 import type { Task, TaskStatus } from '../types/index.js'
 
@@ -18,9 +19,16 @@ export function createTasksRouter(registry: UserRegistry) {
   })
 
   app.get('/:id', async (c) => {
+    const id = c.req.param('id')
+    // Handle supercrew demo features
+    if (isSupcrewDemoEnabled() && isSupercrewTask(id)) {
+      const task = readSupercrewFeature(id)
+      if (!task) return c.json({ error: 'Not found' }, 404)
+      return c.json(task)
+    }
     try {
       const ctx = await getGitHubContext(c.req.header('Authorization'), registry)
-      const task = await readTaskGH(ctx.accessToken, ctx.owner, ctx.repo, c.req.param('id'))
+      const task = await readTaskGH(ctx.accessToken, ctx.owner, ctx.repo, id)
       if (!task) return c.json({ error: 'Not found' }, 404)
       return c.json(task)
     } catch (e: any) {
@@ -75,10 +83,16 @@ export function createTasksRouter(registry: UserRegistry) {
   })
 
   app.put('/:id/status', async (c) => {
+    const id = c.req.param('id')
+    const { status } = await c.req.json<{ status: TaskStatus }>()
+    // Handle supercrew demo features — write back to meta.yaml
+    if (isSupcrewDemoEnabled() && isSupercrewTask(id)) {
+      const updated = updateSupercrewFeatureStatus(id, status)
+      if (!updated) return c.json({ error: 'Not found' }, 404)
+      return c.json(updated)
+    }
     try {
       const ctx = await getGitHubContext(c.req.header('Authorization'), registry)
-      const id = c.req.param('id')
-      const { status } = await c.req.json<{ status: TaskStatus }>()
       const existing = await readTaskGH(ctx.accessToken, ctx.owner, ctx.repo, id)
       if (!existing) return c.json({ error: 'Not found' }, 404)
       const updated = { ...existing, status }

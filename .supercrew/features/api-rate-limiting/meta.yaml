@@ -1,0 +1,17 @@
+id: api-rate-limiting
+feature_name: "API 限流保护"
+description: "为后端 API 添加限流机制，防止滥用和保障系统稳定性。"
+priority: P2
+status: planning
+
+
+teams: [platform]
+owner: charlie
+target_release: "2026-Q1"
+dev-branch: "feature/api-rate-limiting"
+
+created: "2026-02-22"
+updated: "2026-03-03"
+
+tags: [api, security, rate-limit]
+blocked_by: ""

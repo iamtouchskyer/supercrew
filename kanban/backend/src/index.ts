@@ -9,8 +9,10 @@ import { createSprintsRouter } from './routes/sprints.js'
 import { createPeopleRouter } from './routes/people.js'
 import { createKnowledgeRouter } from './routes/knowledge.js'
 import { createDecisionsRouter } from './routes/decisions.js'
+import { createFeaturesRouter } from './routes/features.js'
 import { getGitHubContext } from './lib/get-github-context.js'
 import { listTasksGH, listSprintsGH, listPeopleGH } from './store/github-store.js'
+import { listSupercrewFeatures, isSupcrewDemoEnabled } from './store/supercrew-store.js'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -39,6 +41,7 @@ app.route('/api/sprints', createSprintsRouter(registry))
 app.route('/api/people', createPeopleRouter(registry))
 app.route('/api/knowledge', createKnowledgeRouter(registry))
 app.route('/api/decisions', createDecisionsRouter(registry))
+app.route('/api/features', createFeaturesRouter())
 
 // Board: aggregate endpoint
 app.get('/api/board', async (c) => {
@@ -49,8 +52,20 @@ app.get('/api/board', async (c) => {
       listSprintsGH(ctx.accessToken, ctx.owner, ctx.repo),
       listPeopleGH(ctx.accessToken, ctx.owner, ctx.repo),
     ])
-    return c.json({ tasks, sprints, people })
+    // Merge supercrew demo features when enabled
+    const allTasks = isSupcrewDemoEnabled()
+      ? [...tasks, ...listSupercrewFeatures()]
+      : tasks
+    return c.json({ tasks: allTasks, sprints, people })
   } catch (e: any) {
+    // If auth fails but demo mode is on, return demo data only
+    if (isSupcrewDemoEnabled()) {
+      return c.json({
+        tasks: listSupercrewFeatures(),
+        sprints: [],
+        people: [],
+      })
+    }
     return c.json({ error: e.message }, e.message === 'Unauthorized' ? 401 : 400)
   }
 })

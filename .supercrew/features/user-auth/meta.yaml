@@ -1,0 +1,18 @@
+# === Kanban 必填 ===
+id: user-auth
+title: "用户认证系统"
+status: active
+owner: alice
+priority: P0
+
+# === 团队协调 ===
+teams: [platform, frontend]
+target_release: "2026-Q1"
+
+# === 时间戳 ===
+created: "2026-02-15"
+updated: "2026-03-02"
+
+# === 可选 ===
+tags: [auth, security, jwt]
+blocked_by: ""

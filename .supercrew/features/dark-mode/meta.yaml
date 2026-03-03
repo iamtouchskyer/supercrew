@@ -1,0 +1,18 @@
+# === Kanban 必填 ===
+id: dark-mode
+title: "深色模式支持"
+status: done
+owner: bob
+priority: P3
+
+# === 团队协调 ===
+teams: [frontend]
+target_release: "2026-Q1"
+
+# === 时间戳 ===
+created: "2026-01-20"
+updated: "2026-02-28"
+
+# === 可选 ===
+tags: [ui, theme, accessibility]
+blocked_by: ""

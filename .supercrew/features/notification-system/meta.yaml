@@ -1,0 +1,18 @@
+# === Kanban 必填 ===
+id: notification-system
+title: "通知推送系统"
+status: blocked
+owner: david
+priority: P1
+
+# === 团队协调 ===
+teams: [platform, frontend]
+target_release: "2026-Q2"
+
+# === 时间戳 ===
+created: "2026-02-10"
+updated: "2026-03-02"
+
+# === 可选 ===
+tags: [notification, websocket, realtime]
+blocked_by: "user-auth"

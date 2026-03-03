@@ -16,22 +16,17 @@ const PUBLIC_PATHS = ['/login', '/auth/callback', '/welcome']
 function RootLayout() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const [dark, setDark] = useState(() =>
-    typeof window !== 'undefined'
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches
-      : true
-  )
+  const [dark, setDark] = useState(() => {
+    if (typeof window === 'undefined') return true
+    const saved = localStorage.getItem('crew-theme')
+    if (saved) return saved === 'dark'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  })
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark)
     localStorage.setItem('crew-theme', dark ? 'dark' : 'light')
   }, [dark])
-
-  // Restore from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('crew-theme')
-    if (saved) setDark(saved === 'dark')
-  }, [])
 
   const pathname = useRouterState({ select: s => s.location.pathname })
   const navigate = useNavigate()

@@ -1,0 +1,18 @@
+# === Kanban 必填 ===
+id: dashboard-redesign
+title: "仪表盘重设计"
+status: active
+owner: bob
+priority: P1
+
+# === 团队协调 ===
+teams: [frontend, design]
+target_release: "2026-Q1"
+
+# === 时间戳 ===
+created: "2026-02-18"
+updated: "2026-03-03"
+
+# === 可选 ===
+tags: [ui, dashboard, redesign]
+blocked_by: ""
