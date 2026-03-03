@@ -225,3 +225,126 @@ plugins/supercrew/
 - **插件优先开发**：Phase 顺序调整为插件→后端→前端，因为没有插件就没有数据可读。
 - **无 Init API**：Kanban 不负责初始化 `.supercrew/` 目录，由插件负责。看板对未初始化的 repo 显示空状态 + 引导。
 - **无拖拽**：看板只读，不提供拖拽修改 status 的功能。
+- **MVP 不含 Sprint**：30 人团队未来需要时间节奏，但 MVP 先聚焦 feature lifecycle。Sprint 机制在 Post-MVP 迭代中引入（见 Next Steps）。
+- **上线/Release 协调 Post-MVP**：MVP 不包含 release train 或 deployment 协调功能。Post-MVP 根据团队实际需求决定是否引入。
+
+---
+
+## Next Steps — Post-MVP 迭代规划
+
+MVP 解决了 Layer 2（团队协调层）中"项目管理可见性"和"设计/文档强制性"两大核心缺口。以下迭代聚焦补齐剩余 gap：**跨组协调**、**时间节奏（Sprint）**、**Agent 能力深化**、**上线协调**。
+
+### Iteration 1: supercrew-manager Agent 能力增强
+
+MVP 的 `supercrew-manager` agent 描述过于简略。参考 `ddd-tech-lead` agent 的设计深度，迭代 1 补充完整的 agent prompt 设计：
+
+#### 1.1 决策指引框架
+- **Feature 识别**：用户描述需求时，自动判断是新建 feature 还是归属已有 feature
+- **状态推断规则**：根据代码变更、commit 内容、test 结果自动推断 status 转换（例：design.md status 从 draft → approved 后，自动建议 feature status 从 designing → ready）
+- **优先级升降规则**：根据 `blocked_by` 依赖链和 deadline 接近程度，主动提醒优先级调整
+- **Context 注入策略**：SessionStart 时不只列出 feature 列表，而是智能摘要——突出 blocked features、临近 deadline 的 features、长期无更新的 features
+
+#### 1.2 自检清单（Self-Verification）
+Agent 在每次操作前/后执行自检：
+1. 目标 feature 文件夹是否存在？不存在是否应创建？
+2. `meta.yaml` 中所有必填字段是否完整？
+3. `plan.md` 的 `completed_tasks` 是否与实际 checklist 一致？
+4. `log.md` 是否已记录本次 session 的工作内容？
+5. 是否有 `blocked_by` 指向的 feature 已经完成但未更新？
+6. 是否有跨 feature 的架构影响需要在 `design.md` 中记录？
+
+#### 1.3 主动行为（Proactive Behaviors）
+- 检测到用户长时间在某 feature 上工作但未更新 `log.md` → 主动提醒记录
+- 检测到 `plan.md` 中 `completed_tasks` 落后于实际 commit → 主动建议同步
+- 检测到多个 features 的 `blocked_by` 形成环形依赖 → 告警
+- Session 结束前自动执行 `log-progress` skill
+- 检测到新 feature 的 `design.md` 仍为 draft 但 status 已到 active → 警告跳过设计审查
+
+#### 1.4 沟通风格
+- 状态更新简洁直接，用结构化格式（表格、列表）
+- 关键决策需提供上下文说明
+- 需求模糊时主动提出澄清问题
+- 区分 Critical/Important/Minor 事项
+
+### Iteration 2: Sprint 机制引入
+
+为 30 人团队引入时间节奏，在 feature 下嵌套 Sprint 结构：
+
+#### 2.1 Schema 扩展
+```
+.supercrew/
+  features/
+    feature-a/
+      meta.yaml
+      design.md
+      plan.md
+      log.md
+      sprints/                     # 新增
+        sprint_260303/             # YYMMDD 格式
+          goals.md                 # Sprint 目标
+          tasks.md                 # 本 Sprint 的 task breakdown + 状态
+          retro.md                 # Sprint 回顾（可选）
+```
+
+- `meta.yaml` 新增可选字段：`current_sprint: sprint_260303`
+- `tasks.md` 结构：YAML frontmatter（`sprint_start`, `sprint_end`, `velocity_planned`, `velocity_actual`）+ task checklist（每项含 assignee、status、estimate）
+- `goals.md`：本 Sprint 在该 feature 上要达成的目标
+- `retro.md`：Sprint 结束时由 AI 自动生成回顾摘要
+
+#### 2.2 插件新增 Skills
+- **`create-sprint`**：在指定 feature 下创建 `sprints/sprint_YYMMDD/` 目录 + 初始文件
+- **`close-sprint`**：汇总完成情况，生成 `retro.md`，更新 `plan.md` progress
+- **`sprint-status`**：展示当前 Sprint 的 task 完成情况
+
+#### 2.3 看板前端扩展
+- Feature 详情页新增 **Sprint** Tab：展示当前 Sprint 的 task 列表、进度、燃尽图
+- 看板卡片可展示当前 Sprint 进度（可选 toggle）
+- Sprint 历史视图：查看历次 Sprint 的 velocity 趋势
+
+#### 2.4 Commands
+- **`/new-sprint`**：在当前 feature 下创建新 Sprint
+- **`/sprint-review`**：展示当前 Sprint 摘要 + 建议关闭
+
+### Iteration 3: 跨 Feature 协调与依赖可视化
+
+解决"小组之间不通气"的核心问题：
+
+#### 3.1 依赖图可视化
+- 前端新增 **Dependencies** 视图：基于所有 features 的 `blocked_by` 字段，渲染有向依赖图
+- 高亮环形依赖（红色标注）
+- 高亮关键路径（影响最多下游 feature 的上游）
+
+#### 3.2 `notes.md` 引入
+- 在 feature 文件中新增 `notes.md`：用于非结构化的研究笔记、讨论记录、补充上下文（参考 DDD 的 `notes.md`）
+- `log.md` 保持时间线追加语义，`notes.md` 用于随意记录
+
+#### 3.3 跨 Feature 变更通知
+- 看板前端新增简单的 **Activity Feed**：聚合所有 features 的最近变更（基于 git commit 时间戳 + log.md 最新条目）
+- 按团队（`teams` 字段）筛选 feed，实现"看到其他组在做什么"
+
+#### 3.4 架构治理
+- 新增 `.supercrew/architecture/` 目录（可选）：存放全局 ADR（Architecture Decision Records）
+- Agent 在 `design.md` 涉及跨 feature 架构变更时，自动建议创建/更新 ADR
+
+### Iteration 4: Release 协调
+
+解决"上线难度高"的问题：
+
+#### 4.1 Release 概念引入
+- 新增 `.supercrew/releases/` 目录：每个 release 一个文件夹
+- `release.yaml`：`version`, `target_date`, `features[]`（包含的 feature id 列表）, `status`（planning/staging/released）
+- 看板新增 **Release** 视图：按 release 分组展示 features 及其就绪状态
+
+#### 4.2 Release Readiness 检查
+- Agent 新增 **`release-check`** skill：扫描 release 中所有 features，检查是否全部 `status=done`、`design.md` approved、`plan.md` progress=100%
+- 前端展示 release readiness dashboard（红/黄/绿信号灯）
+
+### 迭代优先级与时间线
+
+| 迭代 | 聚焦 | 解决的 Layer 2 问题 | 建议时间 |
+|---|---|---|---|
+| **MVP** | Feature lifecycle + 只读看板 | 项目管理、设计/文档 | 当前 |
+| **Iter 1** | Agent 能力增强 | 提升自动化程度，减少人工维护负担 | MVP 后 1-2 周 |
+| **Iter 2** | Sprint 机制 | 时间节奏、任务粒度管理 | Iter 1 后 2-3 周 |
+| **Iter 3** | 跨 Feature 协调 | 小组不通气、架构治理 | Iter 2 后 2-3 周 |
+| **Iter 4** | Release 协调 | 上线难度高 | Iter 3 后 2-3 周 |
