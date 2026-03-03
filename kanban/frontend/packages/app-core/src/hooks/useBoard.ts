@@ -1,11 +1,16 @@
 import { useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchBoard } from '../api.js'
-import type { Board } from '../types.js'
+import type { FeatureBoard } from '../types.js'
 
 export const BOARD_KEY = ['board'] as const
 
-const EMPTY_BOARD: Board = { tasks: [], sprints: [], people: [] }
+const EMPTY_BOARD: FeatureBoard = {
+  features: [],
+  featuresByStatus: {
+    planning: [], designing: [], ready: [], active: [], blocked: [], done: [],
+  },
+}
 
 export function useBoard() {
   const queryClient = useQueryClient()
@@ -27,10 +32,8 @@ export function useBoard() {
   const board = data ?? EMPTY_BOARD
   return {
     board,
-    tasks: board.tasks,
-    sprints: board.sprints,
-    people: board.people,
-    activeSprint: board.sprints.find(s => s.status === 'active') ?? null,
+    features: board.features,
+    featuresByStatus: board.featuresByStatus,
     isLoading,
     error,
   }

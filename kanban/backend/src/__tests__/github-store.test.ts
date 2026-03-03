@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const mockFetch = vi.fn()
 global.fetch = mockFetch as any
 
-import { listTasksGH, readTaskGH } from '../store/github-store.js'
+import { listFeaturesGH, getFeatureMetaGH } from '../store/github-store.js'
 
 const TOKEN = 'ghp_test'
 const OWNER = 'testowner'
@@ -12,37 +12,38 @@ const REPO = 'testrepo'
 describe('github-store', () => {
   beforeEach(() => { mockFetch.mockReset() })
 
-  it('listTasksGH returns empty array when directory missing', async () => {
+  it('listFeaturesGH returns empty array when directory missing', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 404 } as any)
-    const result = await listTasksGH(TOKEN, OWNER, REPO)
+    const result = await listFeaturesGH(TOKEN, OWNER, REPO)
     expect(result).toEqual([])
   })
 
-  it('listTasksGH skips template files', async () => {
+  it('listFeaturesGH lists feature directories and loads meta', async () => {
+    // First call: list features directory
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => [
-        { name: '_template.md', type: 'file' },
-        { name: 'ENG-001.md', type: 'file' },
+        { name: 'feat-001', type: 'dir' },
+        { name: 'README.md', type: 'file' }, // should be skipped
       ],
     } as any)
+    // Second call: ghGet for feat-001/meta.yaml
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        content: btoa('---\ntitle: Test Task\nstatus: backlog\npriority: P2\ncreated: 2026-01-01\nupdated: 2026-01-01\ntags: []\nblocks: []\nblocked_by: []\n---\nTask body'),
-        sha: 'abc123',
+        content: btoa('id: feat-001\ntitle: Test Feature\nstatus: planning\nowner: alice\npriority: P1\ncreated: "2026-01-01"\nupdated: "2026-01-01"\n'),
       }),
     } as any)
 
-    const result = await listTasksGH(TOKEN, OWNER, REPO)
+    const result = await listFeaturesGH(TOKEN, OWNER, REPO)
     expect(result).toHaveLength(1)
-    expect(result[0].id).toBe('ENG-001')
-    expect(result[0].title).toBe('Test Task')
+    expect(result[0].id).toBe('feat-001')
+    expect(result[0].title).toBe('Test Feature')
   })
 
-  it('readTaskGH returns null when file missing', async () => {
+  it('getFeatureMetaGH returns null when file missing', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 404 } as any)
-    const result = await readTaskGH(TOKEN, OWNER, REPO, 'ENG-999')
+    const result = await getFeatureMetaGH(TOKEN, OWNER, REPO, 'missing-feat')
     expect(result).toBeNull()
   })
 })

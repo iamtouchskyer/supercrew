@@ -2,119 +2,132 @@ import { test, expect, beforeEach, afterEach } from 'vitest'
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
-import { readTask, writeTask, updateTaskStatus, readPerson } from '../store/index.js'
-import type { Task } from '../types/index.js'
+import { listFeatures, getFeatureMeta, getFeatureDesign, getFeaturePlan, getFeature, checkSupercrewExists } from '../store/index.js'
 
 let tempDir: string
 
 beforeEach(() => {
   tempDir = mkdtempSync(join(tmpdir(), 'crew-test-'))
-  process.env.TEAM_DIR = tempDir
+  process.env.SUPERCREW_DIR = tempDir
 })
 
 afterEach(() => {
   rmSync(tempDir, { recursive: true, force: true })
-  delete process.env.TEAM_DIR
+  delete process.env.SUPERCREW_DIR
 })
 
-// ─── readTask ────────────────────────────────────────────────────────────────
+// ─── listFeatures ────────────────────────────────────────────────────────────
 
-test('readTask returns null for non-existent file', () => {
-  expect(readTask('MISSING-001')).toBeNull()
+test('listFeatures returns empty array when features dir missing', () => {
+  expect(listFeatures()).toEqual([])
 })
 
-test('writeTask + readTask round-trip preserves all fields', () => {
-  const task: Task = {
-    id: 'ENG-001',
-    title: 'Test task',
-    status: 'todo',
-    priority: 'P1',
-    created: '2026-01-01',
-    updated: '2026-01-01',
-    tags: ['backend'],
-    blocks: ['ENG-002'],
-    blocked_by: [],
-    body: 'This is the task body.',
-  }
-  writeTask(task)
-  const result = readTask('ENG-001')
-  expect(result).not.toBeNull()
-  expect(result!.title).toBe('Test task')
-  expect(result!.status).toBe('todo')
-  expect(result!.priority).toBe('P1')
-  expect(result!.tags).toEqual(['backend'])
-  expect(result!.blocks).toEqual(['ENG-002'])
-  expect(result!.body).toBe('This is the task body.')
-})
-
-test('readTask applies default status and priority when frontmatter omits them', () => {
-  mkdirSync(join(tempDir, 'tasks'), { recursive: true })
+test('listFeatures reads feature directories', () => {
+  const featDir = join(tempDir, 'features', 'feat-001')
+  mkdirSync(featDir, { recursive: true })
   writeFileSync(
-    join(tempDir, 'tasks', 'MIN-001.md'),
-    '---\ntitle: Minimal task\n---\n\nBody here.',
+    join(featDir, 'meta.yaml'),
+    'id: feat-001\ntitle: Test Feature\nstatus: planning\nowner: alice\npriority: P1\ncreated: "2026-01-01"\nupdated: "2026-01-01"\n',
   )
-  const result = readTask('MIN-001')
-  expect(result).not.toBeNull()
-  expect(result!.status).toBe('backlog')
-  expect(result!.priority).toBe('P2')
-  expect(result!.tags).toEqual([])
-  expect(result!.blocks).toEqual([])
-  expect(result!.blocked_by).toEqual([])
+  const result = listFeatures()
+  expect(result).toHaveLength(1)
+  expect(result[0].id).toBe('feat-001')
+  expect(result[0].title).toBe('Test Feature')
+  expect(result[0].priority).toBe('P1')
 })
 
-test('updateTaskStatus changes status and persists to disk', () => {
-  const task: Task = {
-    id: 'ENG-002',
-    title: 'Status test',
-    status: 'todo',
-    priority: 'P2',
-    created: '2026-01-01',
-    updated: '2026-01-01',
-    tags: [],
-    blocks: [],
-    blocked_by: [],
-    body: '',
-  }
-  writeTask(task)
-  const updated = updateTaskStatus('ENG-002', 'in-progress')
-  expect(updated).not.toBeNull()
-  expect(updated!.status).toBe('in-progress')
-  expect(readTask('ENG-002')!.status).toBe('in-progress')
+// ─── getFeatureMeta ──────────────────────────────────────────────────────────
+
+test('getFeatureMeta returns null for non-existent feature', () => {
+  expect(getFeatureMeta('MISSING-001')).toBeNull()
 })
 
-test('updateTaskStatus returns null for non-existent task', () => {
-  expect(updateTaskStatus('MISSING-001', 'done')).toBeNull()
-})
-
-// ─── readPerson ───────────────────────────────────────────────────────────────
-
-test('readPerson returns null for non-existent file', () => {
-  expect(readPerson('nobody')).toBeNull()
-})
-
-test('readPerson parses person correctly', () => {
-  mkdirSync(join(tempDir, 'people'), { recursive: true })
+test('getFeatureMeta parses meta.yaml correctly', () => {
+  const featDir = join(tempDir, 'features', 'feat-002')
+  mkdirSync(featDir, { recursive: true })
   writeFileSync(
-    join(tempDir, 'people', 'alice.md'),
-    [
-      '---',
-      'name: Alice',
-      'team: eng',
-      'updated: "2026-01-01"',
-      'current_task: ENG-001',
-      'completed_today:',
-      '  - "Wrote tests"',
-      '---',
-      '',
-      "Alice's notes.",
-    ].join('\n'),
+    join(featDir, 'meta.yaml'),
+    'id: feat-002\ntitle: Another Feature\nstatus: active\nowner: bob\npriority: P0\nteams:\n  - backend\ntags:\n  - infra\ncreated: "2026-01-01"\nupdated: "2026-01-02"\n',
   )
-  const result = readPerson('alice')
+  const result = getFeatureMeta('feat-002')
   expect(result).not.toBeNull()
-  expect(result!.username).toBe('alice')
-  expect(result!.name).toBe('Alice')
-  expect(result!.team).toBe('eng')
-  expect(result!.current_task).toBe('ENG-001')
-  expect(result!.completed_today).toEqual(['Wrote tests'])
-  expect(result!.body).toBe("Alice's notes.")
+  expect(result!.title).toBe('Another Feature')
+  expect(result!.status).toBe('active')
+  expect(result!.priority).toBe('P0')
+  expect(result!.teams).toEqual(['backend'])
+  expect(result!.tags).toEqual(['infra'])
+})
+
+// ─── getFeatureDesign ────────────────────────────────────────────────────────
+
+test('getFeatureDesign returns null when file missing', () => {
+  expect(getFeatureDesign('MISSING-001')).toBeNull()
+})
+
+test('getFeatureDesign parses design.md correctly', () => {
+  const featDir = join(tempDir, 'features', 'feat-003')
+  mkdirSync(featDir, { recursive: true })
+  writeFileSync(
+    join(featDir, 'design.md'),
+    '---\nstatus: in-review\nreviewers:\n  - carol\n---\nDesign body content.',
+  )
+  const result = getFeatureDesign('feat-003')
+  expect(result).not.toBeNull()
+  expect(result!.status).toBe('in-review')
+  expect(result!.reviewers).toEqual(['carol'])
+  expect(result!.body).toBe('Design body content.')
+})
+
+// ─── getFeaturePlan ──────────────────────────────────────────────────────────
+
+test('getFeaturePlan returns null when file missing', () => {
+  expect(getFeaturePlan('MISSING-001')).toBeNull()
+})
+
+test('getFeaturePlan parses plan.md correctly', () => {
+  const featDir = join(tempDir, 'features', 'feat-004')
+  mkdirSync(featDir, { recursive: true })
+  writeFileSync(
+    join(featDir, 'plan.md'),
+    '---\ntotal_tasks: 5\ncompleted_tasks: 2\nprogress: 40\n---\nPlan body.',
+  )
+  const result = getFeaturePlan('feat-004')
+  expect(result).not.toBeNull()
+  expect(result!.total_tasks).toBe(5)
+  expect(result!.completed_tasks).toBe(2)
+  expect(result!.progress).toBe(40)
+  expect(result!.body).toBe('Plan body.')
+})
+
+// ─── getFeature ──────────────────────────────────────────────────────────────
+
+test('getFeature returns null for non-existent feature', () => {
+  expect(getFeature('MISSING-001')).toBeNull()
+})
+
+test('getFeature returns full feature with all documents', () => {
+  const featDir = join(tempDir, 'features', 'feat-005')
+  mkdirSync(featDir, { recursive: true })
+  writeFileSync(join(featDir, 'meta.yaml'), 'id: feat-005\ntitle: Full Feature\nstatus: designing\nowner: dave\npriority: P2\ncreated: "2026-01-01"\nupdated: "2026-01-01"\n')
+  writeFileSync(join(featDir, 'design.md'), '---\nstatus: draft\nreviewers: []\n---\nDesign content.')
+  writeFileSync(join(featDir, 'plan.md'), '---\ntotal_tasks: 3\ncompleted_tasks: 1\nprogress: 33\n---\nPlan content.')
+  writeFileSync(join(featDir, 'log.md'), 'Log content here.')
+
+  const result = getFeature('feat-005')
+  expect(result).not.toBeNull()
+  expect(result!.meta.title).toBe('Full Feature')
+  expect(result!.design!.status).toBe('draft')
+  expect(result!.plan!.total_tasks).toBe(3)
+  expect(result!.log!.body).toBe('Log content here.')
+})
+
+// ─── checkSupercrewExists ────────────────────────────────────────────────────
+
+test('checkSupercrewExists returns false when dir missing', () => {
+  expect(checkSupercrewExists()).toBe(false)
+})
+
+test('checkSupercrewExists returns true when features dir exists', () => {
+  mkdirSync(join(tempDir, 'features'), { recursive: true })
+  expect(checkSupercrewExists()).toBe(true)
 })

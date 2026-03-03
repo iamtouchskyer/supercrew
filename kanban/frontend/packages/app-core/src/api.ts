@@ -1,4 +1,4 @@
-import type { Task, Sprint, Person, Board, TaskStatus } from './types.js'
+import type { FeatureBoard, FeatureMeta, Feature, DesignDoc, PlanDoc } from './types.js'
 import { authHeaders, clearToken } from './auth.js'
 
 const BASE = '/api'
@@ -22,71 +22,21 @@ function headers(extra?: Record<string, string>): Record<string, string> {
   return { ...authHeaders(), ...extra }
 }
 
-// ─── Board ────────────────────────────────────────────────────────────────────
+// ─── Board (aggregate) ───────────────────────────────────────────────────────
 
-export const fetchBoard = (): Promise<Board> =>
-  fetch(`${BASE}/board`, { headers: headers() }).then(json<Board>)
+export const fetchBoard = (): Promise<FeatureBoard> =>
+  fetch(`${BASE}/board`, { headers: headers() }).then(json<FeatureBoard>)
 
-// ─── Tasks ────────────────────────────────────────────────────────────────────
+// ─── Features (read-only) ────────────────────────────────────────────────────
 
-export const fetchTasks = (): Promise<Task[]> =>
-  fetch(`${BASE}/tasks`, { headers: headers() }).then(json<Task[]>)
+export const fetchFeatures = (): Promise<FeatureMeta[]> =>
+  fetch(`${BASE}/features`, { headers: headers() }).then(json<FeatureMeta[]>)
 
-export const fetchTask = (id: string): Promise<Task> =>
-  fetch(`${BASE}/tasks/${id}`, { headers: headers() }).then(json<Task>)
+export const fetchFeature = (id: string): Promise<Feature> =>
+  fetch(`${BASE}/features/${id}`, { headers: headers() }).then(json<Feature>)
 
-export const createTask = (task: Omit<Task, 'created' | 'updated'>): Promise<Task> =>
-  fetch(`${BASE}/tasks`, {
-    method: 'POST',
-    headers: headers({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify(task),
-  }).then(json<Task>)
+export const fetchFeatureDesign = (id: string): Promise<DesignDoc> =>
+  fetch(`${BASE}/features/${id}/design`, { headers: headers() }).then(json<DesignDoc>)
 
-export const updateTask = (id: string, patch: Partial<Task>): Promise<Task> =>
-  fetch(`${BASE}/tasks/${id}`, {
-    method: 'PATCH',
-    headers: headers({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify(patch),
-  }).then(json<Task>)
-
-export const updateTaskStatus = (id: string, status: TaskStatus): Promise<Task> =>
-  fetch(`${BASE}/tasks/${id}/status`, {
-    method: 'PUT',
-    headers: headers({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify({ status }),
-  }).then(json<Task>)
-
-export const deleteTask = (id: string): Promise<{ ok: boolean }> =>
-  fetch(`${BASE}/tasks/${id}`, { method: 'DELETE', headers: headers() }).then(json<{ ok: boolean }>)
-
-// ─── Sprints ──────────────────────────────────────────────────────────────────
-
-export const fetchSprints = (): Promise<Sprint[]> =>
-  fetch(`${BASE}/sprints`, { headers: headers() }).then(json<Sprint[]>)
-
-export const updateSprint = (id: number, patch: Partial<Sprint>): Promise<Sprint> =>
-  fetch(`${BASE}/sprints/${id}`, {
-    method: 'PATCH',
-    headers: headers({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify(patch),
-  }).then(json<Sprint>)
-
-// ─── People ───────────────────────────────────────────────────────────────────
-
-export const fetchPeople = (): Promise<Person[]> =>
-  fetch(`${BASE}/people`, { headers: headers() }).then(json<Person[]>)
-
-export const updatePerson = (username: string, patch: Partial<Person>): Promise<Person> =>
-  fetch(`${BASE}/people/${username}`, {
-    method: 'PATCH',
-    headers: headers({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify(patch),
-  }).then(json<Person>)
-
-// ─── Knowledge & Decisions ────────────────────────────────────────────────────
-
-export const fetchKnowledge = (): Promise<import('./types.js').KnowledgeEntry[]> =>
-  fetch(`${BASE}/knowledge`, { headers: headers() }).then(json<import('./types.js').KnowledgeEntry[]>)
-
-export const fetchDecisions = (): Promise<import('./types.js').Decision[]> =>
-  fetch(`${BASE}/decisions`, { headers: headers() }).then(json<import('./types.js').Decision[]>)
+export const fetchFeaturePlan = (id: string): Promise<PlanDoc> =>
+  fetch(`${BASE}/features/${id}/plan`, { headers: headers() }).then(json<PlanDoc>)

@@ -10,12 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WelcomeRouteImport } from './routes/welcome'
-import { Route as PeopleRouteImport } from './routes/people'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as KnowledgeRouteImport } from './routes/knowledge'
-import { Route as DecisionsRouteImport } from './routes/decisions'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TasksIdRouteImport } from './routes/tasks.$id'
+import { Route as FeaturesIdRouteImport } from './routes/features.$id'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
 const WelcomeRoute = WelcomeRouteImport.update({
@@ -23,24 +20,9 @@ const WelcomeRoute = WelcomeRouteImport.update({
   path: '/welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PeopleRoute = PeopleRouteImport.update({
-  id: '/people',
-  path: '/people',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KnowledgeRoute = KnowledgeRouteImport.update({
-  id: '/knowledge',
-  path: '/knowledge',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DecisionsRoute = DecisionsRouteImport.update({
-  id: '/decisions',
-  path: '/decisions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -48,9 +30,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TasksIdRoute = TasksIdRouteImport.update({
-  id: '/tasks/$id',
-  path: '/tasks/$id',
+const FeaturesIdRoute = FeaturesIdRouteImport.update({
+  id: '/features/$id',
+  path: '/features/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -61,77 +43,46 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/decisions': typeof DecisionsRoute
-  '/knowledge': typeof KnowledgeRoute
   '/login': typeof LoginRoute
-  '/people': typeof PeopleRoute
   '/welcome': typeof WelcomeRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/tasks/$id': typeof TasksIdRoute
+  '/features/$id': typeof FeaturesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/decisions': typeof DecisionsRoute
-  '/knowledge': typeof KnowledgeRoute
   '/login': typeof LoginRoute
-  '/people': typeof PeopleRoute
   '/welcome': typeof WelcomeRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/tasks/$id': typeof TasksIdRoute
+  '/features/$id': typeof FeaturesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/decisions': typeof DecisionsRoute
-  '/knowledge': typeof KnowledgeRoute
   '/login': typeof LoginRoute
-  '/people': typeof PeopleRoute
   '/welcome': typeof WelcomeRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/tasks/$id': typeof TasksIdRoute
+  '/features/$id': typeof FeaturesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/decisions'
-    | '/knowledge'
-    | '/login'
-    | '/people'
-    | '/welcome'
-    | '/auth/callback'
-    | '/tasks/$id'
+  fullPaths: '/' | '/login' | '/welcome' | '/auth/callback' | '/features/$id'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/decisions'
-    | '/knowledge'
-    | '/login'
-    | '/people'
-    | '/welcome'
-    | '/auth/callback'
-    | '/tasks/$id'
+  to: '/' | '/login' | '/welcome' | '/auth/callback' | '/features/$id'
   id:
     | '__root__'
     | '/'
-    | '/decisions'
-    | '/knowledge'
     | '/login'
-    | '/people'
     | '/welcome'
     | '/auth/callback'
-    | '/tasks/$id'
+    | '/features/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DecisionsRoute: typeof DecisionsRoute
-  KnowledgeRoute: typeof KnowledgeRoute
   LoginRoute: typeof LoginRoute
-  PeopleRoute: typeof PeopleRoute
   WelcomeRoute: typeof WelcomeRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
-  TasksIdRoute: typeof TasksIdRoute
+  FeaturesIdRoute: typeof FeaturesIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -143,32 +94,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/people': {
-      id: '/people'
-      path: '/people'
-      fullPath: '/people'
-      preLoaderRoute: typeof PeopleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/knowledge': {
-      id: '/knowledge'
-      path: '/knowledge'
-      fullPath: '/knowledge'
-      preLoaderRoute: typeof KnowledgeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/decisions': {
-      id: '/decisions'
-      path: '/decisions'
-      fullPath: '/decisions'
-      preLoaderRoute: typeof DecisionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -178,11 +108,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tasks/$id': {
-      id: '/tasks/$id'
-      path: '/tasks/$id'
-      fullPath: '/tasks/$id'
-      preLoaderRoute: typeof TasksIdRouteImport
+    '/features/$id': {
+      id: '/features/$id'
+      path: '/features/$id'
+      fullPath: '/features/$id'
+      preLoaderRoute: typeof FeaturesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -197,13 +127,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DecisionsRoute: DecisionsRoute,
-  KnowledgeRoute: KnowledgeRoute,
   LoginRoute: LoginRoute,
-  PeopleRoute: PeopleRoute,
   WelcomeRoute: WelcomeRoute,
   AuthCallbackRoute: AuthCallbackRoute,
-  TasksIdRoute: TasksIdRoute,
+  FeaturesIdRoute: FeaturesIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

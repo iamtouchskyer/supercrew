@@ -2,8 +2,8 @@ import { Outlet, createRootRoute, useRouterState, useNavigate } from '@tanstack/
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  SquaresFourIcon, UsersIcon, BookOpenIcon,
-  LightbulbIcon, LightningIcon,
+  SquaresFourIcon,
+  LightningIcon,
 } from '@phosphor-icons/react'
 import { useTranslation } from 'react-i18next'
 import AppHeader from '@web/components/AppHeader'
@@ -119,24 +119,6 @@ function RootLayout() {
       label: t('nav.board'),
       onClick: () => navigate({ to: '/' }),
       className: isActive('/', true) ? 'dock-item-active' : '',
-    },
-    {
-      icon: <UsersIcon size={17} weight={iconWeight('/people')} color={iconColor('/people')} />,
-      label: t('nav.people'),
-      onClick: () => navigate({ to: '/people' }),
-      className: isActive('/people') ? 'dock-item-active' : '',
-    },
-    {
-      icon: <BookOpenIcon size={17} weight={iconWeight('/knowledge')} color={iconColor('/knowledge')} />,
-      label: t('nav.knowledge'),
-      onClick: () => navigate({ to: '/knowledge' }),
-      className: isActive('/knowledge') ? 'dock-item-active' : '',
-    },
-    {
-      icon: <LightbulbIcon size={17} weight={iconWeight('/decisions')} color={iconColor('/decisions')} />,
-      label: t('nav.decisions'),
-      onClick: () => navigate({ to: '/decisions' }),
-      className: isActive('/decisions') ? 'dock-item-active' : '',
     },
   ]
 

@@ -1,9 +1,6 @@
 {
   "nav": {
-    "board": "Board",
-    "people": "People",
-    "knowledge": "Knowledge",
-    "decisions": "Decisions"
+    "board": "Board"
   },
   "sidebar": {
     "lightMode": "Light mode",
@@ -14,13 +11,12 @@
   },
   "board": {
     "loading": "Loading…",
-    "activeSprint": "Active Sprint",
-    "addTo": "Add to {{name}}",
     "columns": {
-      "backlog": "Backlog",
-      "todo": "To Do",
-      "inProgress": "In Progress",
-      "inReview": "In Review",
+      "planning": "Planning",
+      "designing": "Designing",
+      "ready": "Ready",
+      "active": "Active",
+      "blocked": "Blocked",
       "done": "Done"
     }
   },
@@ -54,11 +50,11 @@
       "private": "private"
     },
     "step3": {
-      "initializing": "Initializing .team/ directory…",
-      "success": "Initialized successfully, entering board…",
+      "binding": "Binding repo…",
+      "success": "Repo bound successfully, entering board…",
       "retry": "Retry",
       "noRepo": "Please go back and select a repo first",
-      "initFailed": "Initialization failed",
+      "bindFailed": "Binding failed",
       "unknownError": "Unknown error"
     },
     "nav": {
@@ -66,39 +62,39 @@
       "next": "Next"
     }
   },
-  "people": {
-    "title": "Team",
-    "empty": "No people found. Add .md files to .team/people/",
-    "workingOn": "Working on",
-    "today": "Today"
-  },
-  "knowledge": {
-    "title": "Knowledge Base",
+  "feature": {
+    "notFound": "Feature {{id}} not found",
     "loading": "Loading…",
-    "empty": "No entries yet. Add .md files to .team/knowledge/"
-  },
-  "decisions": {
-    "title": "Architecture Decisions",
-    "loading": "Loading…",
-    "empty": "No ADRs yet. Add .md files to .team/decisions/"
-  },
-  "task": {
-    "notFound": "Task {{id}} not found",
+    "tabs": {
+      "overview": "Overview",
+      "design": "Design",
+      "plan": "Plan"
+    },
     "props": {
       "status": "Status",
       "priority": "Priority",
-      "assignee": "Assignee",
-      "sprint": "Sprint",
+      "owner": "Owner",
+      "teams": "Teams",
       "tags": "Tags",
-      "pr": "PR",
-      "blockedBy": "Blocked by",
-      "blocks": "Blocks"
+      "targetRelease": "Target Release",
+      "created": "Created",
+      "updated": "Updated",
+      "blockedBy": "Blocked by"
     },
-    "sprintLabel": "Sprint {{n}}",
-    "description": "Description",
-    "clickToEdit": "Click to edit",
-    "addDescription": "Click to add description…",
-    "save": "Save",
-    "cancel": "Cancel"
+    "design": {
+      "status": "Design Status",
+      "reviewers": "Reviewers",
+      "approvedBy": "Approved by",
+      "noDesign": "No design document yet"
+    },
+    "plan": {
+      "progress": "Progress",
+      "tasks": "Tasks",
+      "noPlan": "No implementation plan yet"
+    }
+  },
+  "empty": {
+    "title": "No features yet",
+    "description": "Install the SuperCrew plugin in your repo and use /new-feature to create your first feature."
   }
 }

@@ -56,7 +56,7 @@ export function createProjectsRouter(registry: UserRegistry) {
       const payload = await getPayload(c.req.header('Authorization'))
       const res = await fetch(
         'https://api.github.com/user/repos?sort=updated&per_page=100&affiliation=owner,collaborator,organization_member',
-        { headers: { Authorization: `Bearer ${payload.access_token}`, 'User-Agent': 'jingxia-kanban' } }
+        { headers: { Authorization: `Bearer ${payload.access_token}`, 'User-Agent': 'supercrew-app' } }
       )
       const repos = await res.json()
       console.log('[github/repos] status:', res.status, 'count:', Array.isArray(repos) ? repos.length : repos)
@@ -64,48 +64,17 @@ export function createProjectsRouter(registry: UserRegistry) {
     } catch { return c.json({ error: 'Unauthorized' }, 401) }
   })
 
-  // 检查 repo 是否已有 .team/ 目录
+  // 检查 repo 是否已有 .supercrew/features/ 目录
   app.get('/github/repos/:owner/:repo/init-status', async (c) => {
     try {
       const payload = await getPayload(c.req.header('Authorization'))
       const { owner, repo } = c.req.param()
       const res = await fetch(
-        `https://api.github.com/repos/${owner}/${repo}/contents/.team`,
-        { headers: { Authorization: `Bearer ${payload.access_token}`, 'User-Agent': 'jingxia-kanban' } }
+        `https://api.github.com/repos/${owner}/${repo}/contents/.supercrew/features`,
+        { headers: { Authorization: `Bearer ${payload.access_token}`, 'User-Agent': 'supercrew-app' } }
       )
       return c.json({ initialized: res.ok })
     } catch { return c.json({ error: 'Unauthorized' }, 401) }
-  })
-
-  // 初始化 .team/ 目录
-  app.post('/github/repos/:owner/:repo/init', async (c) => {
-    try {
-      const payload = await getPayload(c.req.header('Authorization'))
-      const { owner, repo } = c.req.param()
-      const headers = {
-        Authorization: `Bearer ${payload.access_token}`,
-        'User-Agent': 'jingxia-kanban',
-        'Content-Type': 'application/json',
-      }
-      const base = `https://api.github.com/repos/${owner}/${repo}/contents`
-      const readme = btoa(`# .team\n\nThis directory stores project data for Jingxia Kanban.\n\nFiles here are managed automatically. Do not edit manually.\n`)
-
-      const initRes = await fetch(`${base}/.team/README.md`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({ message: 'chore: initialize .team directory', content: readme }),
-        signal: AbortSignal.timeout(30_000),
-      })
-
-      if (!initRes.ok) {
-        const err = await initRes.json() as any
-        throw new Error(err.message ?? 'GitHub API error')
-      }
-
-      return c.json({ ok: true })
-    } catch (e: any) {
-      return c.json({ error: e.message ?? 'Failed to initialize' }, 500)
-    }
   })
 
   return app
