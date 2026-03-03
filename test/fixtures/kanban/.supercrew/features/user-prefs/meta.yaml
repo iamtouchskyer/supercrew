@@ -1,0 +1,9 @@
+id: user-prefs
+title: "User Preferences Page"
+status: active
+owner: "alice"
+priority: P2
+teams: [frontend]
+tags: [settings, ux]
+created: "2026-02-20"
+updated: "2026-03-02"

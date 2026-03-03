@@ -1,0 +1,9 @@
+id: dark-mode
+title: "Dark Mode Support"
+status: ready
+owner: "frank"
+priority: P1
+teams: [frontend]
+tags: [theme, ux]
+created: "2026-02-25"
+updated: "2026-03-03"

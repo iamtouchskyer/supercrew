@@ -1,0 +1,9 @@
+id: export-csv
+title: "CSV/Excel Export"
+status: done
+owner: "leo"
+priority: P2
+teams: [backend, frontend]
+tags: [export, data]
+created: "2026-01-20"
+updated: "2026-02-20"

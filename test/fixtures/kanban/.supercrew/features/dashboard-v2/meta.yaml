@@ -1,0 +1,9 @@
+id: dashboard-v2
+title: "Analytics Dashboard V2"
+status: designing
+owner: "iris"
+priority: P1
+teams: [frontend, data]
+tags: [dashboard, charts, analytics]
+created: "2026-02-26"
+updated: "2026-03-03"

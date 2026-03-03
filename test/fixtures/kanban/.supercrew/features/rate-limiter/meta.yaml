@@ -1,0 +1,10 @@
+id: rate-limiter
+title: "API Rate Limiting"
+status: blocked
+owner: "henry"
+priority: P0
+teams: [platform]
+tags: [api, security, redis]
+created: "2026-02-22"
+updated: "2026-03-01"
+blocked_by: [auth-v2]

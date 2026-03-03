@@ -1,0 +1,9 @@
+id: email-digest
+title: "Weekly Email Digest"
+status: planning
+owner: "oscar"
+priority: P2
+teams: [backend, growth]
+tags: [email, notifications]
+created: "2026-03-03"
+updated: "2026-03-04"
