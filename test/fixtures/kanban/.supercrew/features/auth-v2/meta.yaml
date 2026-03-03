@@ -1,0 +1,9 @@
+id: auth-v2
+title: "Auth V2 with SSO"
+status: designing
+owner: "bob"
+priority: P0
+teams: [platform]
+tags: [auth, sso, security]
+created: "2026-01-30"
+updated: "2026-02-28"

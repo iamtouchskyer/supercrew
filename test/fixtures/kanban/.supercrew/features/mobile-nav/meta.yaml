@@ -1,0 +1,9 @@
+id: mobile-nav
+title: "Mobile Bottom Navigation"
+status: ready
+owner: "jack"
+priority: P2
+teams: [frontend, mobile]
+tags: [mobile, ux, navigation]
+created: "2026-03-01"
+updated: "2026-03-03"

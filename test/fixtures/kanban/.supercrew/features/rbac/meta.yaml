@@ -1,0 +1,10 @@
+id: rbac
+title: "Role-Based Access Control"
+status: blocked
+owner: "nina"
+priority: P0
+teams: [platform, security]
+tags: [rbac, auth, permissions]
+created: "2026-02-14"
+updated: "2026-03-02"
+blocked_by: [auth-v2]

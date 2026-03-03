@@ -1,0 +1,9 @@
+id: search-api
+title: "Full-Text Search API"
+status: active
+owner: "charlie"
+priority: P0
+teams: [backend]
+tags: [search, elasticsearch]
+created: "2026-02-15"
+updated: "2026-03-01"
