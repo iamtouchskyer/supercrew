@@ -1,6 +1,6 @@
 # SuperCrew MVP — `.supercrew/` Schema + Kanban + AI Plugin
 
-**TL;DR:** 基于 `user/steinsz/supercrew_schema` 分支的 demo 实现，将 kanban 从 `.team/` 资源导向 完全迁移到 `.supercrew/features/` feature 导向的数据模型。MVP 包含三大模块：(1) AI 集成插件（skills + hooks + pre-commit）在用户 repo 中创建和管理 `.supercrew/` 目录，(2) 后端通过 GitHub API（OAuth）只读访问用户 repo 中的 `.supercrew/` 数据，(3) 前端看板以只读方式渲染 feature-centric 视图。参考 [superpowers](https://github.com/obra/superpowers) 的插件架构和 [vibe-kanban](https://github.com/BloopAI/vibe-kanban) 的 issue→workspace 模式。
+**TL;DR:** 基于 `user/steinsz/supercrew_schema` 分支的 demo 实现，将 kanban 从 `.team/` 资源导向 完全迁移到 `.supercrew/features/` feature 导向的数据模型。MVP 包含三大模块：(1) AI 集成插件（skills + hooks + pre-commit）在用户 repo 中创建和管理 `.supercrew/` 目录，(2) 后端通过 GitHub API（OAuth）只读访问用户 repo 中的 `.supercrew/` 数据，(3) 前端看板以只读方式渲染 feature-centric 视图。参考 [superpowers](https://github.com/obra/superpowers) 的插件架构和 [vibe-kanban](https://github.com/BloopAI/vibe-kanban) 的 issue→workspace 模式。插件在 monorepo 的 `plugins/supercrew/` 子目录开发，MVP 阶段通过绝对路径加载（`/plugin marketplace add /path/to/supercrew/plugins/supercrew`），Post-MVP 抽取为独立 repo 后发布到 marketplace。
 
 ### 数据流架构
 
@@ -30,7 +30,12 @@
 
 ## Phase 1: AI 集成插件（数据写入方）
 
-**目标：** 创建独立插件，在用户 repo 中自动创建和管理 `.supercrew/` 目录。这是唯一的数据写入方。参考 superpowers 的 skills/hooks/commands 架构，独立发布到 marketplace。
+**目标：** 在 monorepo 的 `plugins/supercrew/` 子目录下创建 Claude Code 插件，在用户 repo 中自动创建和管理 `.supercrew/` 目录。这是唯一的数据写入方。参考 superpowers 的 skills/hooks/commands 架构。
+
+**Monorepo 策略：** 插件代码保留在 `plugins/supercrew/`，与 `kanban/` 共存于同一 repo。Claude Code marketplace 要求 plugin 为独立 repo（整个 repo = plugin 根目录），因此：
+- **MVP 阶段**：通过绝对路径加载 — `/plugin marketplace add /path/to/supercrew/plugins/supercrew`（在任意 repo 中均可安装），`plugins/supercrew/` 内含 `.claude-plugin/marketplace.json`（`"source": "./"`），结构与独立 repo 一致
+- **Post-MVP**：将 `plugins/supercrew/` 抽取为独立 repo（如 `supercrew-plugin`），注册到 marketplace，用户可通过 `/plugin install supercrew@marketplace` 安装
+- **目录结构已按独立 repo 标准设计**，抽取时无需重构
 
 ### 1.1 插件目录结构
 ```
@@ -217,7 +222,7 @@ plugins/supercrew/
 ## Decisions
 - **`.team/` 完全弃用**：MVP 不做兼容，直接替换。简化实现复杂度。
 - **Feature-centric 而非 Task-centric**：看板的最小单位是 feature，不再是 task。Task 作为 plan.md 内的 checklist 存在。
-- **插件独立于 superpowers**：降低耦合，独立发布到 marketplace。Post-MVP 可以与 superpowers 融合。
+- **插件在 monorepo 子目录开发**：`plugins/supercrew/` 保留在 monorepo 中，MVP 通过绝对路径加载 `/plugin marketplace add /path/to/supercrew/plugins/supercrew`（在任意 repo 中均可安装）。目录结构按独立 repo 标准设计（`.claude-plugin/` 在 `plugins/supercrew/` 根），Post-MVP 抽取为独立 repo 后可直接发布到 marketplace，无需重构。
 - **Sprint/People/Knowledge/Decisions 移除**：MVP 聚焦 feature lifecycle，这些概念不在 `.supercrew/` schema 中，不保留。
 - **log.md 保留**：虽然讨论文档未提及，但 demo 分支已实现，作为 AI context 很有价值，保留。
 - **Design review 纳入 MVP**：`design.md` 的 `status/reviewer/approved_by` 字段保留，在详情页展示。在 pre-commit hook 中不强制校验。
