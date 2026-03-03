@@ -16,6 +16,7 @@ help:
 
 # ── Install ──────────────────────────────────────────────
 install:
+	cd kanban && npm install
 	cd kanban/backend && bun install
 	cd kanban/frontend && pnpm install
 
