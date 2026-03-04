@@ -11,14 +11,11 @@ AI-driven feature lifecycle management. Track features from idea to done using s
 **Install in Claude Code:**
 
 ```bash
-# 1. Add the local marketplace (use absolute path)
-/plugin marketplace add /path/to/supercrew/plugins/supercrew
+# 1. Add the marketplace
+/plugin marketplace add iamtouchskyer/supercrew
 
 # 2. Install the plugin
 /plugin install supercrew@supercrew-dev
-
-# 3. Verify
-/plugin list
 ```
 
 **Commands:**
