@@ -1,0 +1,11 @@
+id: supercrew-mvp
+title: "SuperCrew MVP"
+status: active
+owner: "Steins Z"
+priority: P0
+teams: []
+tags: [supercrew, mvp, kanban, ai-plugin]
+created: "2026-03-04"
+updated: "2026-03-04"
+# target_release: ""
+# blocked_by: []
