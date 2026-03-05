@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "supercrew": {
+      "command": "bunx",
+      "args": ["@supercrew/mcp-server"],
+      "env": {}
+    }
+  }
+}
