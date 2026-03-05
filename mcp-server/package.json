@@ -1,6 +1,7 @@
 {
   "name": "@supercrew/mcp-server",
   "version": "0.1.0",
+  "description": "Local MCP server for SuperCrew feature management with real-time sync",
   "type": "module",
   "main": "src/index.ts",
   "bin": {
@@ -23,9 +24,15 @@
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.11",
-    "@types/bun": "latest",
+    "@types/bun": "^1.2.9",
+    "@types/js-yaml": "^4.0.9",
     "@types/ws": "^8.5.12",
     "vitest": "^3.2.4",
     "typescript": "^5.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iamtouchskyer/supercrew"
   }
 }
