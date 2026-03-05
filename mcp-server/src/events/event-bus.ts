@@ -9,12 +9,26 @@ export type FeatureEvent =
   | { type: 'sync:completed'; count: number }
   | { type: 'conflict:detected'; featureId: string; local: Feature; remote: Feature }
 
+type EventMap = {
+  'feature:created': [feature: Feature]
+  'feature:updated': [feature: Feature]
+  'feature:deleted': [featureId: string]
+  'sync:started': []
+  'sync:completed': [count: number]
+  'conflict:detected': [featureId: string, local: Feature, remote: Feature]
+}
+
 export class EventBus extends EventEmitter {
-  emit(event: FeatureEvent['type'], ...args: any[]): boolean {
+  constructor() {
+    super()
+    this.setMaxListeners(20)
+  }
+
+  emit<K extends keyof EventMap>(event: K, ...args: EventMap[K]): boolean {
     return super.emit(event, ...args)
   }
 
-  on(event: FeatureEvent['type'], listener: (...args: any[]) => void): this {
+  on<K extends keyof EventMap>(event: K, listener: (...args: EventMap[K]) => void): this {
     return super.on(event, listener)
   }
 
@@ -30,8 +44,20 @@ export class EventBus extends EventEmitter {
     this.emit('feature:deleted', featureId)
   }
 
+  syncStarted(): void {
+    this.emit('sync:started')
+  }
+
+  syncCompleted(count: number): void {
+    this.emit('sync:completed', count)
+  }
+
   conflictDetected(featureId: string, local: Feature, remote: Feature): void {
     this.emit('conflict:detected', featureId, local, remote)
+  }
+
+  dispose(): void {
+    this.removeAllListeners()
   }
 }
 

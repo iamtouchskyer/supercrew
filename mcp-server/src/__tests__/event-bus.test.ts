@@ -68,4 +68,37 @@ describe('EventBus', () => {
 
     expect(handler).toHaveBeenCalledWith('test-id')
   })
+
+  it('emits sync:started event', () => {
+    const bus = new EventBus()
+    const handler = vi.fn()
+    bus.on('sync:started', handler)
+
+    bus.syncStarted()
+
+    expect(handler).toHaveBeenCalledWith()
+  })
+
+  it('emits sync:completed event', () => {
+    const bus = new EventBus()
+    const handler = vi.fn()
+    bus.on('sync:completed', handler)
+
+    bus.syncCompleted(5)
+
+    expect(handler).toHaveBeenCalledWith(5)
+  })
+
+  it('cleans up listeners with dispose', () => {
+    const bus = new EventBus()
+    const handler = vi.fn()
+    bus.on('feature:created', handler)
+
+    bus.dispose()
+
+    const feature = { id: 'test' } as Feature
+    bus.featureCreated(feature)
+
+    expect(handler).not.toHaveBeenCalled()
+  })
 })
