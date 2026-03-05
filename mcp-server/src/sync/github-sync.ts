@@ -1,5 +1,5 @@
 import { execSync } from 'child_process'
-import { writeFileSync, mkdirSync, existsSync } from 'fs'
+import { writeFileSync, mkdirSync, existsSync, rmSync } from 'fs'
 import { join } from 'path'
 import yaml from 'js-yaml'
 import type { Feature } from '../types.js'
@@ -8,6 +8,26 @@ import type { EventBus } from '../events/event-bus.js'
 interface SyncTask {
   action: 'create' | 'update' | 'delete'
   feature: Feature
+}
+
+/**
+ * Validates that a feature ID is safe for use in file paths
+ * @param id - The feature ID to validate
+ * @returns true if the ID is valid
+ */
+function isValidFeatureId(id: string): boolean {
+  // Only allow alphanumeric characters, hyphens, and underscores
+  return /^[a-zA-Z0-9_-]+$/.test(id)
+}
+
+/**
+ * Sanitizes a git commit message by escaping special characters
+ * @param message - The commit message to sanitize
+ * @returns A sanitized message safe for use in shell commands
+ */
+function sanitizeCommitMessage(message: string): string {
+  // Remove or escape characters that could break shell commands
+  return message.replace(/["'`$\\]/g, '')
 }
 
 export class GitHubSyncWorker {
@@ -66,6 +86,12 @@ export class GitHubSyncWorker {
 
   private async executeTask(task: SyncTask) {
     const { feature, action } = task
+
+    // Validate feature ID to prevent path traversal attacks
+    if (!isValidFeatureId(feature.id)) {
+      throw new Error(`Invalid feature ID: ${feature.id}. Only alphanumeric characters, hyphens, and underscores are allowed.`)
+    }
+
     const featureDir = join(this.repoRoot, '.supercrew', 'features', feature.id)
 
     switch (action) {
@@ -78,7 +104,8 @@ export class GitHubSyncWorker {
 
       case 'delete':
         if (existsSync(featureDir)) {
-          execSync(`rm -rf "${featureDir}"`, { cwd: this.repoRoot })
+          // Use fs.rmSync instead of shell command to prevent command injection
+          rmSync(featureDir, { recursive: true, force: true })
           this.gitCommit(`chore: delete feature ${feature.id}`)
         }
         break
@@ -100,28 +127,29 @@ export class GitHubSyncWorker {
       created: feature.created_at,
       updated: feature.updated_at,
     }
-    writeFileSync(join(dir, 'meta.yaml'), yaml.dump(meta))
+    writeFileSync(join(dir, 'meta.yaml'), yaml.dump(meta), { encoding: 'utf-8' })
 
     // design.md
     if (feature.design_md) {
-      writeFileSync(join(dir, 'design.md'), feature.design_md)
+      writeFileSync(join(dir, 'design.md'), feature.design_md, { encoding: 'utf-8' })
     }
 
     // plan.md
     if (feature.plan_md) {
-      writeFileSync(join(dir, 'plan.md'), feature.plan_md)
+      writeFileSync(join(dir, 'plan.md'), feature.plan_md, { encoding: 'utf-8' })
     }
 
     // log.md
     if (feature.log_md) {
-      writeFileSync(join(dir, 'log.md'), feature.log_md)
+      writeFileSync(join(dir, 'log.md'), feature.log_md, { encoding: 'utf-8' })
     }
   }
 
   private gitCommit(message: string) {
     try {
+      const sanitizedMessage = sanitizeCommitMessage(message)
       execSync('git add .supercrew/', { cwd: this.repoRoot })
-      execSync(`git commit -m "${message}" --allow-empty`, { cwd: this.repoRoot })
+      execSync(`git commit -m "${sanitizedMessage}" --allow-empty`, { cwd: this.repoRoot })
     } catch (e) {
       // Ignore if nothing to commit
     }
