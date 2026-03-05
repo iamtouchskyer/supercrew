@@ -59,7 +59,8 @@ async function main() {
       },
       websocket: {
         open(ws) {
-          wsServer.handleConnection(ws as any)
+          // Bun's ServerWebSocket is compatible with WebSocket interface
+          wsServer.handleConnection(ws as unknown as WebSocket)
         },
         message() {},
         close() {},

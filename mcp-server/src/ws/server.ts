@@ -1,9 +1,17 @@
 import type { EventBus } from '../events/event-bus.js'
 import type { Feature } from '../types.js'
 
+// WebSocket message types
+type WSMessage =
+  | { type: 'connected'; clientCount: number }
+  | { type: 'feature:created'; feature: Feature }
+  | { type: 'feature:updated'; feature: Feature }
+  | { type: 'feature:deleted'; featureId: string }
+  | { type: 'conflict:detected'; featureId: string; local: Feature; remote: Feature }
+
 interface WebSocketClient {
   ws: WebSocket
-  send: (data: any) => void
+  send: (data: WSMessage) => void
 }
 
 export class WebSocketServer {
@@ -34,7 +42,7 @@ export class WebSocketServer {
   handleConnection(ws: WebSocket) {
     const client: WebSocketClient = {
       ws,
-      send: (data) => ws.send(JSON.stringify(data)),
+      send: (data: WSMessage) => ws.send(JSON.stringify(data)),
     }
     this.clients.add(client)
 
@@ -46,7 +54,7 @@ export class WebSocketServer {
     client.send({ type: 'connected', clientCount: this.clients.size })
   }
 
-  broadcast(data: any) {
+  broadcast(data: WSMessage) {
     for (const client of this.clients) {
       try {
         client.send(data)
